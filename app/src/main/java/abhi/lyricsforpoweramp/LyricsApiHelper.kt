@@ -1,22 +1,22 @@
 package abhi.lyricsforpoweramp
 
+import abhi.lyricsforpoweramp.model.Lyric
+import abhi.lyricsforpoweramp.model.Track
 import android.util.Log
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
-import java.io.File
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 
-class LyricsHelper {
+class LyricsApiHelper {
     private val TAG = javaClass.simpleName
     private val API_BASE_URL = "https://lrclib.net/api/"
 
     private suspend fun makeApiRequest(params: String): String? {
-        Log.d(TAG, "makeApiRequest: params: $params")
         return try {
             withContext(Dispatchers.IO) {
                 val url = API_BASE_URL + params
@@ -43,20 +43,14 @@ class LyricsHelper {
         }
     }
 
-    suspend fun getLyrics(
-        trackName: String,
-        artistName: String?,
-        albumName: String?,
-        duration: Int?
-    ): String? {
-        val track = Track(trackName, artistName, albumName, duration, null)
-        return getLyricsForTrack(track)?.syncedLyrics
+    suspend fun getTopMatchingLyrics(track: Track): String? {
+        return getLyricsForTrack(track)?.get(0)?.syncedLyrics
     }
 
-    private suspend fun getLyricsForTrack(track: Track): Track? {
+    suspend fun getLyricsForTrack(track: Track): Array<Lyric>? {
         val requestParams = buildString {
             append("search?")
-            append("q=${encode(processTrackName(track.trackName))}")
+            append("q=${encode(track.trackName)}")
 //            Note: metadata won't be correct all the time. That's why below params are disabled
 //            if (track.artistName != null) append("&artist_name=${encode(track.artistName)}")
 //            if (track.albumName != null) append("&album_name=${encode(track.albumName)}")
@@ -67,28 +61,20 @@ class LyricsHelper {
             Log.e(TAG, "searchTrackInfo: No search result for $track")
             return null
         }
-        val matchingTrack = parseSearchResponse(searchResponse)
-        return if (matchingTrack == null) {
+        val matchingTracks = parseSearchResponse(searchResponse)
+        return if (matchingTracks.isNullOrEmpty()) {
             Log.e(TAG, "searchTrackInfo: failed to parseJson $searchResponse")
             null
-        } else matchingTrack
+        } else matchingTracks
     }
 
 
-    private fun parseSearchResponse(searchResponse: String?): Track? {
-        val results: Array<Track> = Gson().fromJson(searchResponse, Array<Track>::class.java)
-        return if (results.isNotEmpty()) results[0] else null
+    private fun parseSearchResponse(searchResponse: String?): Array<Lyric>? {
+        val results: Array<Lyric>? = Gson().fromJson(searchResponse, Array<Lyric>::class.java)
+        return results?.filter { it.plainLyrics != null || it.syncedLyrics !=null  }?.toTypedArray<Lyric>()
     }
 
     private fun encode(text: String): String {
         return URLEncoder.encode(text)
-    }
-
-    private fun processTrackName(trackName: String): String {
-        var name = File(trackName).nameWithoutExtension
-        //removing unnecessary words from title
-        name = name.replace("OST", "")
-        name = name.trim()
-        return name
     }
 }
