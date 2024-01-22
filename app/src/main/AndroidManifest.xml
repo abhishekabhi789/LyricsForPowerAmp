@@ -13,10 +13,14 @@
         android:theme="@android:style/Theme"
         tools:targetApi="34">
         <activity
-            android:name=".LyricsLinkActivity"
+            android:name=".LyricsChooseActivity"
             android:excludeFromRecents="true"
             android:exported="true"
             android:theme="@android:style/Theme.Material.Light.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
             <intent-filter>
                 <action android:name="com.maxmpz.audioplayer.ACTION_LYRICS_LINK" />
                 <category android:name="android.intent.category.DEFAULT" />
