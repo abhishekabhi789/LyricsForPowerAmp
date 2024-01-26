@@ -25,6 +25,7 @@ class LyricsApiHelper {
                 val url = API_BASE_URL + params
                 val connection = URL(url).openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
+                connection.setRequestProperty("Content-Type", "application/json")
                 val responseCode = connection.responseCode
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     val reader = BufferedReader(InputStreamReader(connection.inputStream))
@@ -59,9 +60,15 @@ class LyricsApiHelper {
     suspend fun getLyricsForTrack(track: Track): MutableList<Lyric>? {
         val requestParams = buildString {
             append("search?")
-            if (track.trackName != null) append("q=${encode(track.trackName!!)}")
+            /*if (track.trackName != null) append("q=${encode(track.trackName!!)}")
             if (track.artistName != null) append("&artist_name=${encode(track.artistName!!)}")
             if (track.albumName != null) append("&album_name=${encode(track.albumName!!)}")
+            if (track.duration != null && track.duration!! > 0) append("&duration=${track.duration}")*/
+            //The api gives better results when passed album and artists names along with title as q
+            append("q=")
+            if (track.trackName != null) append(encode(track.trackName!! + " "))
+            if (track.artistName != null) append(encode(track.artistName!! + " "))
+            if (track.albumName != null) append(encode(track.albumName!! + " "))
             if (track.duration != null && track.duration!! > 0) append("&duration=${track.duration}")
         }
         Log.d(TAG, "getLyricsForTrack: $requestParams")

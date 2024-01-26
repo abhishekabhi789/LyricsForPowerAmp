@@ -13,9 +13,24 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +45,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -40,12 +56,13 @@ import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.InterpreterMode
 import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -66,8 +83,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -79,6 +98,9 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.maxmpz.poweramp.player.PowerampAPI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -90,6 +112,7 @@ import kotlin.properties.Delegates
 class LyricsChooseActivity : ComponentActivity() {
     private val TAG = javaClass.simpleName
     private lateinit var context: Context
+    private val CONTENT_ANIMATION_DURATION = 500
 
     /**Needed to update the track on PowerAmp. Applicable only for [PowerampAPI.Lyrics.ACTION_LYRICS_LINK]*/
     private var realId: Long = 0L
@@ -99,11 +122,12 @@ class LyricsChooseActivity : ComponentActivity() {
     private var searchTrack: Track? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen()
         setContent {
             LyricsForPowerAmpTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
                 ) {
                     LyricChooserApp()
                 }
@@ -111,12 +135,15 @@ class LyricsChooseActivity : ComponentActivity() {
         }
     }
 
+    @OptIn(ExperimentalAnimationApi::class)
     @SuppressLint("CoroutineCreationDuringComposition")
     @Composable
     private fun LyricChooserApp() {
+        val density = LocalDensity.current
         context = LocalContext.current
         val coroutineScope = rememberCoroutineScope()
         var showSearchUi: Boolean by remember { mutableStateOf(true) }
+        var isSearching: Boolean by remember { mutableStateOf(false) }
         val searchResultsState = remember { MutableStateFlow<List<Lyric>>(emptyList()) }
         when (intent?.action) {
             PowerampAPI.Lyrics.ACTION_LYRICS_LINK -> {
@@ -137,22 +164,53 @@ class LyricsChooseActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                if (showSearchUi) {
+                AnimatedVisibility(
+                    visible = showSearchUi,
+                    enter = slideInVertically {
+                        with(density) { -40.dp.roundToPx() }
+                    } + expandVertically(
+                        expandFrom = Alignment.Bottom
+                    ) + fadeIn(
+                        initialAlpha = 0.3f
+                    ),
+                    exit = slideOutVertically() + shrinkVertically()
+                ) {
                     SearchUi(searchTrack, onSearch = { track ->
                         searchTrack = track
+                        isSearching = true
                         coroutineScope.launch {
                             try {
                                 val results = getLyricsForTrack(track)
-                                searchResultsState.value = results // Update the state
+                                searchResultsState.value = results
                                 if (results.isEmpty()) {
-                                    "No result found".toToast(context)
-                                    Log.e(TAG, "LyricChooserApp: No Result found for $track", )
+                                    getString(R.string.no_result).toToast(context)
+                                    Log.e(TAG, "LyricChooserApp: No Result found for $track")
                                 }
                             } catch (e: Exception) {
                                 e.printStackTrace()
+                            } finally {
+                                isSearching = false
                             }
                         }
                     })
+                    if (isSearching) {
+                        Dialog(
+                            onDismissRequest = { isSearching = false },
+                            DialogProperties(
+                                dismissOnBackPress = true,
+                                dismissOnClickOutside = false
+                            )
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .background(White, shape = RoundedCornerShape(8.dp))
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
                 }
                 val searchResults by searchResultsState.collectAsState()
                 if (searchResults.isNotEmpty()) {
@@ -160,10 +218,19 @@ class LyricsChooseActivity : ComponentActivity() {
                     showSearchUi = false
                 }
             }
-            if (!showSearchUi) {
-                FAB {
-                    searchResultsState.value = emptyList()
-                    showSearchUi = true
+
+            Box {
+                AnimatedVisibility(
+                    visible = !showSearchUi,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    FAB(
+                        onClick = {
+                            searchResultsState.value = emptyList()
+                            showSearchUi = true
+                        },
+                    )
                 }
             }
         }
@@ -202,8 +269,8 @@ class LyricsChooseActivity : ComponentActivity() {
     }
 
     @Composable
-    fun FAB(onClick: () -> Unit) {
-        Box(modifier = Modifier.fillMaxSize()) {
+    fun FAB(onClick: () -> Unit, modifier: Modifier = Modifier) {
+        Box(modifier = modifier.fillMaxSize()) {
             FloatingActionButton(
                 onClick = { onClick() },
                 elevation = FloatingActionButtonDefaults.elevation(),
@@ -211,7 +278,7 @@ class LyricsChooseActivity : ComponentActivity() {
                     .padding(all = 16.dp)
                     .align(alignment = Alignment.BottomEnd),
             ) {
-                Icon(Icons.Outlined.Search, "Show search UI button")
+                Icon(Icons.Outlined.Search, "Show search UI FA button")
             }
         }
     }
@@ -233,16 +300,22 @@ class LyricsChooseActivity : ComponentActivity() {
                 value = text ?: "",
                 onValueChange = { onValueChange(it) },
                 label = { Text(label) },
-                leadingIcon = { Icon(icon, contentDescription = null) },
+                leadingIcon = {
+                    Icon(
+                        icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                },
                 trailingIcon = {
                     if (text?.isNotEmpty() == true) {
                         Icon(imageVector = Icons.Outlined.Clear,
-                            contentDescription = "clear input",
+                            contentDescription = stringResource(R.string.clear_input),
                             modifier = Modifier.clickable { onValueChange(null) })
                     } else if (isError) {
                         Icon(
                             imageVector = Icons.Outlined.ErrorOutline,
-                            contentDescription = "error",
+                            contentDescription = stringResource(R.string.error),
                             tint = MaterialTheme.colorScheme.error
                         )
                     }
@@ -250,7 +323,7 @@ class LyricsChooseActivity : ComponentActivity() {
                 supportingText = {
                     if (isError) {
                         Text(
-                            text = "Ensure a valid input",
+                            text = stringResource(R.string.invalid_input_error),
                             color = MaterialTheme.colorScheme.error
                         )
                     }
@@ -278,24 +351,24 @@ class LyricsChooseActivity : ComponentActivity() {
             verticalArrangement = Arrangement.Top
         ) {
             TextInput(
-                label = "Track Title",
+                label = stringResource(R.string.track_title),
                 icon = Icons.Outlined.MusicNote,
                 text = trackTitle,
-                isError = emptyTitleInput
+                isError = false//temporarily disabled since only q params is used
             ) {
                 emptyTitleInput = false //resetting error on input
                 trackTitle = it
             }
             TextInput(
-                label = "Album Name",
+                label = stringResource(R.string.album_name),
                 icon = Icons.Outlined.Album,
                 text = albumName,
-                isError = false//no need to use error on these fields
+                isError = false //no need to use error on these fields
             ) {
                 albumName = it
             }
             TextInput(
-                label = "Artists",
+                label = stringResource(R.string.artists),
                 icon = Icons.Outlined.InterpreterMode,
                 text = artistName,
                 isError = false
@@ -304,11 +377,14 @@ class LyricsChooseActivity : ComponentActivity() {
             }
             Spacer(modifier = Modifier.padding(8.dp))
             OutlinedButton(onClick = {
-                if (!trackTitle.isNullOrEmpty()) {
-                    onSearch.invoke(Track(trackTitle, artistName, albumName, null, null))
-                } else emptyTitleInput = true
+//                if (!trackTitle.isNullOrEmpty()) {
+                onSearch.invoke(Track(trackTitle, artistName, albumName, null, null))
+//                } else emptyTitleInput = true
             }) {
-                Icon(imageVector = Icons.Outlined.Search, contentDescription = "Search")
+                Icon(
+                    imageVector = Icons.Outlined.Search,
+                    contentDescription = stringResource(R.string.search)
+                )
                 Spacer(modifier = Modifier.padding(4.dp))
                 Text(text = "Search")
             }
@@ -327,10 +403,14 @@ class LyricsChooseActivity : ComponentActivity() {
         }
     }
 
+    @OptIn(ExperimentalAnimationApi::class)
     @Composable
     fun LyricItem(lyric: Lyric, modifier: Modifier = Modifier) {
         var expanded by remember { mutableStateOf(false) }
-        var showSyncedLyrics by remember { mutableStateOf(showSyncedLyrics(lyric)) }
+        var showPlainLyrics by remember { mutableStateOf(showPlainLyrics(lyric)) }
+        //availability of either synced or plain lyrics is ensured while parsing api response
+        val currentLyrics = (if (showPlainLyrics) lyric.plainLyrics else lyric.syncedLyrics)!!
+        val checkPlainLyricsChip = currentLyrics == lyric.plainLyrics
         ElevatedCard(
             modifier = modifier.fillMaxWidth(),
             elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
@@ -341,14 +421,14 @@ class LyricsChooseActivity : ComponentActivity() {
                     .animateContentSize(
                         animationSpec = spring(
                             dampingRatio = Spring.DampingRatioNoBouncy,
-                            stiffness = Spring.StiffnessMedium
+                            stiffness = Spring.StiffnessMediumLow
                         )
                     )
             ) {
                 Row(modifier = Modifier.wrapContentHeight()) {
                     Text(
                         text = lyric.trackName,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = MaterialTheme.colorScheme.primary,
                         style = typography.titleLarge,
                         modifier = Modifier.weight(1f)
                     )
@@ -362,7 +442,7 @@ class LyricsChooseActivity : ComponentActivity() {
                             )
                             if (sent) finish() else Toast.makeText(
                                 context,
-                                "Failed to choose",
+                                getString(R.string.failed_to_send_lyrics_to_poweramp),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -370,72 +450,106 @@ class LyricsChooseActivity : ComponentActivity() {
                 }
                 Text(
                     text = lyric.artistName,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    color = MaterialTheme.colorScheme.primary,
                     style = typography.titleMedium,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
                     text = lyric.albumName,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    color = MaterialTheme.colorScheme.primary,
                     style = typography.titleSmall,
                     modifier = Modifier
                 )
                 Row {
                     Text(
                         text = lyric.getFormattedDuration(),
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                        color = MaterialTheme.colorScheme.secondary
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     if (lyric.plainLyrics != null) {
                         MakeChip(
-                            label = "Plain",
+                            label = stringResource(R.string.plain_lyrics_short),
+                            selected = checkPlainLyricsChip,
                             drawable = R.drawable.ic_plain_lyrics
-                        ) { showSyncedLyrics = false }
+                        ) { showPlainLyrics = true }
                     }
                     if (lyric.syncedLyrics != null) {
                         MakeChip(
-                            label = "Synced",
+                            label = stringResource(R.string.synced_lyrics_short),
+                            selected = !checkPlainLyricsChip,
                             drawable = R.drawable.ic_synced_lyrics
-                        ) { showSyncedLyrics = true }
+                        ) { showPlainLyrics = false }
                     }
 
                 }
                 Divider(modifier = Modifier.padding(4.dp))
-                //availability of either synced or plain lyrics is ensured while parsing api response
-                val currentLyrics =
-                    (if (showSyncedLyrics) lyric.syncedLyrics else lyric.plainLyrics)!!
-                if (expanded) {
-                    LyricViewer(lyric = currentLyrics) { expanded = false }
-                } else ClickableText(
-                    text = AnnotatedString(currentLyrics),
-                    onClick = { expanded = true },
-                    style = TextStyle(
-                        fontStyle = FontStyle.Italic,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    maxLines = 5,
-                    modifier = Modifier
-                        .padding(bottom = 8.dp)
-                        .fillMaxWidth()
-                )
+
+                AnimatedContent(
+                    currentLyrics,
+                    transitionSpec = {
+                        if (currentLyrics == lyric.plainLyrics) {
+                            slideInHorizontally(
+                                animationSpec = tween(CONTENT_ANIMATION_DURATION),
+                                initialOffsetX = { fullWidth -> -fullWidth }
+                            ) togetherWith slideOutHorizontally(
+                                animationSpec = tween(CONTENT_ANIMATION_DURATION),
+                                targetOffsetX = { fullWidth -> fullWidth }
+                            )
+                        } else {
+                            slideInHorizontally(
+                                animationSpec = tween(CONTENT_ANIMATION_DURATION),
+                                initialOffsetX = { fullWidth -> fullWidth }
+                            ) togetherWith slideOutHorizontally(
+                                animationSpec = tween(CONTENT_ANIMATION_DURATION),
+                                targetOffsetX = { fullWidth -> -fullWidth })
+                        }
+                    },
+                    label = "Lyrics Animation"
+                ) {
+                    if (expanded) {
+                        LyricViewer(lyric = it) { expanded = false }
+                    } else ClickableText(
+                        text = AnnotatedString(it),
+                        onClick = { expanded = true },
+                        style = TextStyle(
+                            fontStyle = FontStyle.Italic,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
+                        maxLines = 5,
+                        modifier = Modifier
+                            .padding(bottom = 8.dp)
+                            .fillMaxWidth()
+                    )
+                }
             }
         }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun MakeChip(label: String, @DrawableRes drawable: Int, onClick: () -> Unit) {
-        AssistChip(
+    private fun MakeChip(
+        label: String,
+        selected: Boolean,
+        @DrawableRes drawable: Int,
+        onClick: () -> Unit
+    ) {
+        FilterChip(
             onClick = { onClick() },
             label = { Text(label, style = typography.labelSmall) },
             leadingIcon = {
-                Icon(
-                    painterResource(id = drawable),
-                    contentDescription = null,
-                    Modifier.size(12.dp)
-                )
-            },
-            modifier = Modifier
-                .padding(horizontal = 2.dp)
+                Box(modifier = Modifier.animateContentSize(keyframes {
+                    durationMillis = CONTENT_ANIMATION_DURATION / 2
+                })) {
+                    if (selected) {
+                        Icon(
+                            painterResource(id = drawable),
+                            contentDescription = null,
+                            Modifier.size(12.dp)
+                        )
+                    }
+                }
+            }, selected = selected,
+            modifier = Modifier.padding(horizontal = 2.dp)
         )
     }
 
@@ -465,14 +579,8 @@ class LyricsChooseActivity : ComponentActivity() {
         )
     }
 
-    private fun showSyncedLyrics(lyric: Lyric): Boolean {
-        return if (isLaunchedFromPowerAmp) {
-            //if launched from PowerAmp, prefer synced lyrics
-            lyric.syncedLyrics != null //fallback use plain
-        } else {
-            //if launched from launcher, then prefer plain lyrics.
-            lyric.plainLyrics == null//fallback use synced lyrics
-        }
+    private fun showPlainLyrics(lyric: Lyric): Boolean {
+        return lyric.plainLyrics != null
     }
 
 
@@ -488,7 +596,6 @@ class LyricsChooseActivity : ComponentActivity() {
             }
         }
     }
-
 
     /**show the text as toast*/
     fun String.toToast(context: Context) {

@@ -4,6 +4,7 @@ import abhi.lyricsforpoweramp.PowerAmpIntentUtils.sendLyricResponse
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import com.maxmpz.poweramp.player.PowerampAPI
 import kotlinx.coroutines.runBlocking
 
@@ -18,11 +19,13 @@ class LyricsRequestReceiver : BroadcastReceiver() {
     private fun handleLyricsRequest(context: Context?, intent: Intent) {
         val realId = intent.getLongExtra(PowerampAPI.Track.REAL_ID, PowerampAPI.NO_ID)
         val track = PowerAmpIntentUtils.makeTrack(intent)
-
-        val lyrics: String?
+        Log.i(TAG, "handleLyricsRequest: request for $track")
+        var lyrics: String?
         runBlocking {
             lyrics = LyricsApiHelper().getTopMatchingLyrics(track)
         }
+        //if lyrics null; sending a fake lyrics, so that user can open the lyrics search activity for the track.
+        lyrics = lyrics?: "Couldn't find lyrics for this track.\n Try adjusting the search parameters."
         sendLyricResponse(context, realId, lyrics)
     }
 }

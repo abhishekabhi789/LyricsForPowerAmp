@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">Lyrics for PowerAmp</string>
+    <string name="no_result">No result found</string>
+    <string name="clear_input">clear input</string>
+    <string name="error">error</string>
+    <string name="invalid_input_error">Ensure a valid input</string>
+    <string name="track_title">Track Title</string>
+    <string name="album_name">Album Name</string>
+    <string name="artists">Artists</string>
+    <string name="search">Search</string>
+    <string name="failed_to_send_lyrics_to_poweramp">Failed to choose</string>
+    <string name="plain_lyrics_short">Plain</string>
+    <string name="synced_lyrics_short">Synced</string>
 </resources>
