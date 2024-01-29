@@ -8,7 +8,10 @@
     <string name="album_name">Album Name</string>
     <string name="artists">Artists</string>
     <string name="search">Search</string>
+    <string name="coarse_search_query">Query</string>
     <string name="failed_to_send_lyrics_to_poweramp">Failed to choose</string>
     <string name="plain_lyrics_short">Plain</string>
     <string name="synced_lyrics_short">Synced</string>
+    <string name="coarse_search">Coarse Search</string>
+    <string name="fine_search">Fine Search</string>
 </resources>

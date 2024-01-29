@@ -6,5 +6,5 @@ data class Track(
     var artistName: String?,
     var albumName: String?,
     var duration: Int?,
-    val syncedLyrics: String?
+    val lyrics: String?
 )

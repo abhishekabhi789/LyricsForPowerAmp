@@ -52,6 +52,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.outlined.Album
 import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.InterpreterMode
 import androidx.compose.material.icons.outlined.MusicNote
@@ -73,10 +74,13 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -97,6 +101,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -112,14 +117,16 @@ import kotlin.properties.Delegates
 class LyricsChooseActivity : ComponentActivity() {
     private val TAG = javaClass.simpleName
     private lateinit var context: Context
+    private lateinit var density: Density
     private val CONTENT_ANIMATION_DURATION = 500
 
     /**Needed to update the track on PowerAmp. Applicable only for [PowerampAPI.Lyrics.ACTION_LYRICS_LINK]*/
     private var realId: Long = 0L
     private var isLaunchedFromPowerAmp by Delegates.notNull<Boolean>()
 
-    /**An instance of track used to remember user input on the [SearchUi]*/
+    /**used to remember user input on the [SearchUi]*/
     private var searchTrack: Track? = null
+    private var searchQuery: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
@@ -135,11 +142,10 @@ class LyricsChooseActivity : ComponentActivity() {
         }
     }
 
-    @OptIn(ExperimentalAnimationApi::class)
     @SuppressLint("CoroutineCreationDuringComposition")
     @Composable
     private fun LyricChooserApp() {
-        val density = LocalDensity.current
+        density = LocalDensity.current
         context = LocalContext.current
         val coroutineScope = rememberCoroutineScope()
         var showSearchUi: Boolean by remember { mutableStateOf(true) }
@@ -156,6 +162,7 @@ class LyricsChooseActivity : ComponentActivity() {
                 isLaunchedFromPowerAmp = false
             }
         }
+        var coarseSearchMode: Boolean by remember { mutableStateOf(!isLaunchedFromPowerAmp) }
         Scaffold(topBar = { TopBar() }) {
             Column(
                 modifier = Modifier
@@ -175,24 +182,29 @@ class LyricsChooseActivity : ComponentActivity() {
                     ),
                     exit = slideOutVertically() + shrinkVertically()
                 ) {
-                    SearchUi(searchTrack, onSearch = { track ->
-                        searchTrack = track
-                        isSearching = true
-                        coroutineScope.launch {
-                            try {
-                                val results = getLyricsForTrack(track)
-                                searchResultsState.value = results
-                                if (results.isEmpty()) {
-                                    getString(R.string.no_result).toToast(context)
-                                    Log.e(TAG, "LyricChooserApp: No Result found for $track")
+                    SearchUi(searchQuery,
+                        searchTrack,
+                        coarseSearchMode,
+                        onModeChange = { coarseSearchMode = it },
+                        onQueryChange = { searchQuery = it },
+                        onQueryTrackChange = { searchTrack = it },
+                        onSearch = { track ->
+                            isSearching = true
+                            coroutineScope.launch {
+                                try {
+                                    val results = getLyricsForTrack(track)
+                                    searchResultsState.value = results
+                                    if (results.isEmpty()) {
+                                        getString(R.string.no_result).toToast(context)
+                                        Log.e(TAG, "LyricChooserApp: No Result found for $track")
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                } finally {
+                                    isSearching = false
                                 }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            } finally {
-                                isSearching = false
                             }
-                        }
-                    })
+                        })
                     if (isSearching) {
                         Dialog(
                             onDismissRequest = { isSearching = false },
@@ -236,9 +248,9 @@ class LyricsChooseActivity : ComponentActivity() {
         }
     }
 
-    private suspend fun getLyricsForTrack(track: Track): MutableList<Lyric> {
+    private suspend fun getLyricsForTrack(query: Any): MutableList<Lyric> {
         val lyrics = withContext(Dispatchers.IO) {
-            LyricsApiHelper().getLyricsForTrack(track)
+            LyricsApiHelper().getLyricsForTrack(query)
         }
         return lyrics ?: mutableListOf()
     }
@@ -340,46 +352,103 @@ class LyricsChooseActivity : ComponentActivity() {
     }
 
     @Composable
-    fun SearchUi(track: Track?, onSearch: (Track) -> Unit) {
-        var trackTitle: String? by remember { mutableStateOf(track?.trackName) }
-        var albumName: String? by remember { mutableStateOf(track?.albumName) }
-        var artistName: String? by remember { mutableStateOf(track?.artistName) }
-        //trackTitle is mandatory to get result.
-        var emptyTitleInput: Boolean by remember { mutableStateOf(false) }
+    fun SearchUi(
+        queryString: String?,
+        queryTrack: Track?,
+        coarseSearchMode: Boolean,
+        onModeChange: (Boolean) -> Unit,
+        onQueryChange: (String?) -> Unit,
+        onQueryTrackChange: (Track?) -> Unit,
+        onSearch: (Any) -> Unit
+    ) {
+        var searchQuery: String? by remember { mutableStateOf(queryString) }
+        var searchTrack: Track? by remember { mutableStateOf(queryTrack) }
+        var emptyInputError: Boolean by remember { mutableStateOf(false) }
+        var trackTitle: String? by remember { mutableStateOf(queryTrack?.trackName) }
+        var albumName: String? by remember { mutableStateOf(queryTrack?.albumName) }
+        var artistName: String? by remember { mutableStateOf(queryTrack?.artistName) }
+        onQueryTrackChange(Track(trackTitle, artistName, albumName, null, null))
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+            verticalArrangement = Arrangement.Top,
+            modifier = Modifier.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessHigh))
         ) {
-            TextInput(
-                label = stringResource(R.string.track_title),
-                icon = Icons.Outlined.MusicNote,
-                text = trackTitle,
-                isError = false//temporarily disabled since only q params is used
-            ) {
-                emptyTitleInput = false //resetting error on input
-                trackTitle = it
+            var tabIndex by remember { mutableIntStateOf(if (coarseSearchMode) 0 else 1) }
+            val tabs =
+                listOf(stringResource(R.string.coarse_search), stringResource(R.string.fine_search))
+
+            Column(modifier = Modifier.fillMaxWidth()) {
+                TabRow(selectedTabIndex = tabIndex) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            text = { Text(title) },
+                            selected = tabIndex == index,
+                            onClick = {
+                                tabIndex = index
+                                emptyInputError = false
+                            },
+                        )
+                    }
+                }
+                when (tabIndex) {
+                    0 -> onModeChange(true)
+                    1 -> onModeChange(false)
+                }
             }
-            TextInput(
-                label = stringResource(R.string.album_name),
-                icon = Icons.Outlined.Album,
-                text = albumName,
-                isError = false //no need to use error on these fields
-            ) {
-                albumName = it
+            Spacer(modifier = Modifier.padding(8.dp))
+            if (coarseSearchMode) {
+                TextInput(
+                    label = stringResource(R.string.coarse_search_query),
+                    icon = Icons.Outlined.Edit,
+                    text = searchQuery,
+                    isError = emptyInputError
+                ) {
+                    emptyInputError = false //resetting error on input
+                    searchQuery = it
+                    onQueryChange(it)
+                }
             }
-            TextInput(
-                label = stringResource(R.string.artists),
-                icon = Icons.Outlined.InterpreterMode,
-                text = artistName,
-                isError = false
-            ) {
-                artistName = it
+            if (!coarseSearchMode) {
+                TextInput(
+                    label = stringResource(R.string.track_title),
+                    icon = Icons.Outlined.MusicNote,
+                    text = trackTitle,
+                    isError = emptyInputError
+                ) {
+                    emptyInputError = false //resetting error on input
+                    trackTitle = it
+                    searchTrack?.trackName = it
+                    onQueryTrackChange(searchTrack)
+
+                }
+                TextInput(
+                    label = stringResource(R.string.artists),
+                    icon = Icons.Outlined.InterpreterMode,
+                    text = artistName,
+                    isError = false
+                ) {
+                    artistName = it
+                    searchTrack?.artistName = it
+                    onQueryTrackChange(searchTrack)
+                }
+                TextInput(
+                    label = stringResource(R.string.album_name),
+                    icon = Icons.Outlined.Album,
+                    text = albumName,
+                    isError = false //no need to use error on these fields
+                ) {
+                    albumName = it
+                    searchTrack?.albumName = it
+                    onQueryTrackChange(searchTrack)
+                }
             }
             Spacer(modifier = Modifier.padding(8.dp))
             OutlinedButton(onClick = {
-//                if (!trackTitle.isNullOrEmpty()) {
-                onSearch.invoke(Track(trackTitle, artistName, albumName, null, null))
-//                } else emptyTitleInput = true
+                if (coarseSearchMode && searchQuery != null) {
+                    onSearch.invoke(searchQuery!!)
+                } else if (!coarseSearchMode && !trackTitle.isNullOrEmpty()) {
+                    onSearch.invoke(Track(trackTitle, artistName, albumName, null, null))
+                } else emptyInputError = true
             }) {
                 Icon(
                     imageVector = Icons.Outlined.Search,

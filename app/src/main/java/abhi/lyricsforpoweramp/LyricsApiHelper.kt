@@ -54,34 +54,46 @@ class LyricsApiHelper {
     }
 
     suspend fun getTopMatchingLyrics(track: Track): String? {
-        return getLyricsForTrack(track)?.get(0)?.syncedLyrics
-    }
-
-    suspend fun getLyricsForTrack(track: Track): MutableList<Lyric>? {
         val requestParams = buildString {
-            append("search?")
-            /*if (track.trackName != null) append("q=${encode(track.trackName!!)}")
+            append("get?")
+            if (track.trackName != null) append("track_name=${encode(track.trackName!!)}")
             if (track.artistName != null) append("&artist_name=${encode(track.artistName!!)}")
             if (track.albumName != null) append("&album_name=${encode(track.albumName!!)}")
-            if (track.duration != null && track.duration!! > 0) append("&duration=${track.duration}")*/
-            //The api gives better results when passed album and artists names along with title as q
-            append("q=")
-            if (track.trackName != null) append(encode(track.trackName!! + " "))
-            if (track.artistName != null) append(encode(track.artistName!! + " "))
-            if (track.albumName != null) append(encode(track.albumName!! + " "))
             if (track.duration != null && track.duration!! > 0) append("&duration=${track.duration}")
+        }
+        val response = makeApiRequest(requestParams)
+        return if (!response.isNullOrEmpty()) {
+            val result = Gson().fromJson(response, Lyric::class.java)
+            result.syncedLyrics ?: result.plainLyrics
+        } else null
+    }
+
+    suspend fun getLyricsForTrack(query: Any): MutableList<Lyric>? {
+        val requestParams: String = when (query) {
+            is String -> buildString { append("search?q=${encode(query)}") }
+            is Track ->
+                buildString {
+                    append("search?")
+                    if (query.trackName != null) append("track_name=${encode(query.trackName!!)}")
+                    if (query.artistName != null) append("&artist_name=${encode(query.artistName!!)}")
+                    if (query.albumName != null) append("&album_name=${encode(query.albumName!!)}")
+                }
+            else -> {
+                Log.e(TAG, "Invalid query type: $query")
+                return null
+            }
         }
         Log.d(TAG, "getLyricsForTrack: $requestParams")
         val searchResponse = makeApiRequest(requestParams)
         if (searchResponse.isNullOrEmpty()) {
-            Log.e(TAG, "searchTrackInfo: No search result for $track")
+            Log.e(TAG, "searchTrackInfo: No search result for $query")
             return null
         }
-        val matchingTracks = parseSearchResponse(searchResponse)
-        return if (matchingTracks.isNullOrEmpty()) {
+        val validLyrics = parseSearchResponse(searchResponse)
+        return if (validLyrics.isNullOrEmpty()) {
             Log.e(TAG, "searchTrackInfo: failed to parseJson $searchResponse")
             null
-        } else matchingTracks
+        } else validLyrics
     }
 
 
