@@ -77,7 +77,7 @@ fun LyricItem(componentActivity:ComponentActivity, lyric: Lyric, realId: Long, m
                         val sent = PowerAmpIntentUtils.sendLyricResponse(
                             context = componentActivity,
                             realId = realId,
-                            lyrics = lyric.syncedLyrics
+                            lyrics = lyric.syncedLyrics?:lyric.plainLyrics
                         )
                         if (sent) componentActivity.finish() else Toast.makeText(
                             componentActivity,
