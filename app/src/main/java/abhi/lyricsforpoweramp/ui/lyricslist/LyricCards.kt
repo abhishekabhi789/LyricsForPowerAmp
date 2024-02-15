@@ -2,7 +2,7 @@ package abhi.lyricsforpoweramp.ui.lyricslist
 
 import abhi.lyricsforpoweramp.model.Lyric
 import abhi.lyricsforpoweramp.ui.theme.LyricsForPowerAmpTheme
-import androidx.activity.ComponentActivity
+import abhi.lyricsforpoweramp.ui.utils.FAB
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -17,15 +17,24 @@ import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 
 @Composable
-fun MakeLyricCards(componentActivity: ComponentActivity, realId: Long, lyrics: List<Lyric>) {
+fun MakeLyricCards(
+    lyrics: List<Lyric>,
+    fromPowerAmp: Boolean,
+    onLyricChosen: (String) -> Unit,
+    onNavigateBack: () -> Unit
+) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.padding(16.dp)
     ) {
-        items(lyrics) {
-            LyricItem(lyric = it, componentActivity = componentActivity, realId = realId, modifier = Modifier)
+        items(lyrics) { lyric ->
+            LyricItem(
+                lyric = lyric,
+                isLaunchedFromPowerAmp = fromPowerAmp,
+                onLyricChosen = { chosenLyrics -> onLyricChosen(chosenLyrics) })
         }
     }
+    FAB(onClick = { onNavigateBack() })
 }
 
 @Preview(showSystemUi = true)
@@ -36,7 +45,7 @@ fun LyricListPreview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            MakeLyricCards(ComponentActivity(),-1, makeDummyLyrics())
+            MakeLyricCards(lyrics = makeDummyLyrics(), false, {}, {})
         }
     }
 }
@@ -56,7 +65,7 @@ private fun makeDummyLyrics(): List<Lyric> {
                        {
                           "name":"Track Name 2",
                           "trackName":"Track Title 2 The Track Name 2",
-                         "artistName":"Artists Name 2",
+                          "artistName":"Artists Name 2",
                           "albumName":"Album Name 2",
                           "duration":500,
                           "instrumental":false,
@@ -66,7 +75,7 @@ private fun makeDummyLyrics(): List<Lyric> {
                           {
                           "name":"Track Name 3",
                           "trackName":"Track Title 3",
-                           "artistName":"Artists Name 3",
+                          "artistName":"Artists Name 3",
                           "albumName":"Album Name 3",
                           "duration":15000,
                           "instrumental":false,

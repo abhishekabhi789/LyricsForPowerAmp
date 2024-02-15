@@ -14,6 +14,7 @@ import java.net.MalformedURLException
 import java.net.URL
 import java.net.URLEncoder
 
+/**Helper to interacts with LRCLIB*/
 class LyricsApiHelper {
     private val TAG = javaClass.simpleName
     private val API_BASE_URL = "https://lrclib.net/api/"
@@ -53,12 +54,15 @@ class LyricsApiHelper {
         }
     }
 
+    /**Performs a search to get the best matching lyrics for the track.
+     * @see <a href="https://lrclib.net/docs#:~:text=tranxuanthang/lrcget).-,Get%20lyrics%20with%20a%20track%27s%20signature,-GET">
+     *     LRCLIB#Get lyrics with a track's signature</a>*/
     suspend fun getTopMatchingLyrics(track: Track): String? {
         val requestParams = buildString {
             append("get?")
-            if (track.trackName != null) append("track_name=${encode(track.trackName!!)}")
-            if (track.artistName != null) append("&artist_name=${encode(track.artistName!!)}")
-            if (track.albumName != null) append("&album_name=${encode(track.albumName!!)}")
+            if (!track.trackName.isNullOrEmpty()) append("track_name=${encode(track.trackName!!)}")
+            if (!track.artistName.isNullOrEmpty()) append("&artist_name=${encode(track.artistName!!)}")
+            if (!track.albumName.isNullOrEmpty()) append("&album_name=${encode(track.albumName!!)}")
             if (track.duration != null && track.duration!! > 0) append("&duration=${track.duration}")
         }
         val response = makeApiRequest(requestParams)
@@ -68,15 +72,18 @@ class LyricsApiHelper {
         } else null
     }
 
-    suspend fun getLyricsForTrack(query: Any): MutableList<Lyric>? {
+    /** Performs search for the given input.
+     * @see <a href="https://lrclib.net/docs#:~:text=s%20example%20response.-,Search%20for%20lyrics%20records,-GET">
+     *     LRCLIB#Search for lyrics records</a>*/
+    suspend fun getLyricsForTrack(query: Any): List<Lyric>? {
         val requestParams: String = when (query) {
             is String -> buildString { append("search?q=${encode(query)}") }
             is Track ->
                 buildString {
                     append("search?")
-                    if (query.trackName != null) append("track_name=${encode(query.trackName!!)}")
-                    if (query.artistName != null) append("&artist_name=${encode(query.artistName!!)}")
-                    if (query.albumName != null) append("&album_name=${encode(query.albumName!!)}")
+                    append("track_name=${encode(query.trackName!!)}") //This can't be empty
+                    if (!query.artistName.isNullOrEmpty()) append("&artist_name=${encode(query.artistName!!)}")
+                    if (!query.albumName.isNullOrEmpty()) append("&album_name=${encode(query.albumName!!)}")
                 }
             else -> {
                 Log.e(TAG, "Invalid query type: $query")
@@ -96,11 +103,12 @@ class LyricsApiHelper {
         } else validLyrics
     }
 
-
-    private fun parseSearchResponse(searchResponse: String?): MutableList<Lyric>? {
+    /**Converts JSON response into List of [Lyric].
+     * Ensures either plain or synced lyrics present in each list items.*/
+    private fun parseSearchResponse(searchResponse: String?): List<Lyric>? {
         val results: Array<Lyric>? = Gson().fromJson(searchResponse, Array<Lyric>::class.java)
         return results?.filter { it.plainLyrics != null || it.syncedLyrics != null }
-            ?.toMutableList()
+            ?.toList()
     }
 
 
