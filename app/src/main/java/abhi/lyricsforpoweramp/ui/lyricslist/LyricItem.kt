@@ -12,6 +12,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,6 +35,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -139,11 +141,14 @@ fun LyricItem(
                     }
                 },
                 label = "Lyrics Animation"
-            ) {
+            ) { currentLyrics ->
                 if (expanded) {
-                    LyricViewer(lyric = it) { expanded = false }
+                    LyricViewer(
+                        lyric = currentLyrics,
+                        onSwipe = { showPlainLyrics = it },
+                        onClick = { expanded = false })
                 } else ClickableText(
-                    text = AnnotatedString(it),
+                    text = AnnotatedString(currentLyrics),
                     onClick = { expanded = true },
                     style = TextStyle(
                         fontStyle = FontStyle.Italic,
@@ -153,6 +158,20 @@ fun LyricItem(
                     modifier = Modifier
                         .padding(bottom = 8.dp)
                         .fillMaxWidth()
+                        .pointerInput(Unit) {
+                            detectDragGestures { change, dragAmount ->
+                                change.consume()
+                                when {
+                                    dragAmount.x > 0 -> {
+                                        showPlainLyrics = true
+                                    }
+
+                                    dragAmount.x < 0 -> {
+                                        showPlainLyrics = false
+                                    }
+                                }
+                            }
+                        }
                 )
             }
         }

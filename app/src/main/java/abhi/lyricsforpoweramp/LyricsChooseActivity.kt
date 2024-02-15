@@ -15,9 +15,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -30,6 +33,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.maxmpz.poweramp.player.PowerampAPI
+import kotlinx.coroutines.launch
 import java.lang.Thread.sleep
 
 enum class AppScreen { Search, List; }
@@ -60,7 +64,8 @@ class LyricsChooseActivity : ComponentActivity() {
         navController: NavHostController = rememberNavController()
     ) {
         density = LocalDensity.current
-        rememberCoroutineScope()
+        val scope = rememberCoroutineScope()
+        val snackbarHostState = remember { SnackbarHostState() }
         when (intent?.action) {
             PowerampAPI.Lyrics.ACTION_LYRICS_LINK -> {
                 val realId = intent.getLongExtra(PowerampAPI.Track.REAL_ID, PowerampAPI.NO_ID)
@@ -84,7 +89,9 @@ class LyricsChooseActivity : ComponentActivity() {
                 viewModel.updateLyricsRequestDetails(LyricsRequestState(isLaunchedFromPowerAmp = false))
             }
         }
-        Scaffold(topBar = { TopBar() }) { innerPadding ->
+        Scaffold(topBar = { TopBar() }, snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },) { innerPadding ->
             NavHost(
                 navController = navController,
                 startDestination = AppScreen.Search.name,
@@ -96,7 +103,9 @@ class LyricsChooseActivity : ComponentActivity() {
                         onSearchComplete = { message ->
                             if (message.isNullOrEmpty())
                                 navController.navigate(AppScreen.List.name) else {
-                                message.toToast(applicationContext)
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(message)
+                                }
                             }
                         }
                     )
