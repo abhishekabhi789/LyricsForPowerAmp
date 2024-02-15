@@ -84,7 +84,7 @@ class LyricsChooseActivity : ComponentActivity() {
                 viewModel.updateLyricsRequestDetails(LyricsRequestState(isLaunchedFromPowerAmp = false))
             }
         }
-        Scaffold(topBar = { TopBar(canNavigateBack = false, navigateUp = {}) }) { innerPadding ->
+        Scaffold(topBar = { TopBar() }) { innerPadding ->
             NavHost(
                 navController = navController,
                 startDestination = AppScreen.Search.name,
