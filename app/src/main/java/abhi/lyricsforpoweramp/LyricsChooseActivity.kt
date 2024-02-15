@@ -1,75 +1,43 @@
 package abhi.lyricsforpoweramp
 
-import abhi.lyricsforpoweramp.model.Lyric
-import abhi.lyricsforpoweramp.model.Track
+import abhi.lyricsforpoweramp.model.InputState
+import abhi.lyricsforpoweramp.model.LyricsRequestState
+import abhi.lyricsforpoweramp.ui.LyricViewModel
 import abhi.lyricsforpoweramp.ui.lyricslist.MakeLyricCards
 import abhi.lyricsforpoweramp.ui.search.SearchUi
 import abhi.lyricsforpoweramp.ui.theme.LyricsForPowerAmpTheme
-import abhi.lyricsforpoweramp.ui.utils.FAB
 import abhi.lyricsforpoweramp.ui.utils.TopBar
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color.Companion.White
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.maxmpz.poweramp.player.PowerampAPI
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlin.properties.Delegates
+import java.lang.Thread.sleep
 
+enum class AppScreen { Search, List; }
 
 class LyricsChooseActivity : ComponentActivity() {
-    private val TAG = javaClass.simpleName
-    private lateinit var context: Context
+    private val applicationContext: ComponentActivity = this
     private lateinit var density: Density
 
-    /**Needed to update the track on PowerAmp. Applicable only for [PowerampAPI.Lyrics.ACTION_LYRICS_LINK]*/
-    private var realId: Long = 0L
-    private var isLaunchedFromPowerAmp by Delegates.notNull<Boolean>()
-
-    /**used to remember user input on the [SearchUi]*/
-    private var searchTrack: Track? = null
-    private var searchQuery: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
@@ -87,115 +55,68 @@ class LyricsChooseActivity : ComponentActivity() {
 
     @SuppressLint("CoroutineCreationDuringComposition")
     @Composable
-    private fun LyricChooserApp() {
+    private fun LyricChooserApp(
+        viewModel: LyricViewModel = viewModel(),
+        navController: NavHostController = rememberNavController()
+    ) {
         density = LocalDensity.current
-        context = LocalContext.current
-        val coroutineScope = rememberCoroutineScope()
-        var showSearchUi: Boolean by remember { mutableStateOf(true) }
-        var isSearching: Boolean by remember { mutableStateOf(false) }
-        val searchResultsState = remember { MutableStateFlow<List<Lyric>>(emptyList()) }
+        rememberCoroutineScope()
         when (intent?.action) {
             PowerampAPI.Lyrics.ACTION_LYRICS_LINK -> {
-                isLaunchedFromPowerAmp = true
-                realId = intent.getLongExtra(PowerampAPI.Track.REAL_ID, PowerampAPI.NO_ID)
-                searchTrack = PowerAmpIntentUtils.makeTrack(intent)
+                val realId = intent.getLongExtra(PowerampAPI.Track.REAL_ID, PowerampAPI.NO_ID)
+                val requestedTrack = PowerAmpIntentUtils.makeTrack(intent)
+                viewModel.updateLyricsRequestDetails(
+                    LyricsRequestState(
+                        isLaunchedFromPowerAmp = true,
+                        realId = realId,
+                    )
+                )
+                viewModel.updateInputState(
+                    InputState(
+                        queryString = requestedTrack.trackName ?: "",
+                        queryTrack = requestedTrack,
+                        searchMode = InputState.SearchMode.Fine
+                    )
+                )
             }
 
             else -> {
-                isLaunchedFromPowerAmp = false
+                viewModel.updateLyricsRequestDetails(LyricsRequestState(isLaunchedFromPowerAmp = false))
             }
         }
-        var coarseSearchMode: Boolean by remember { mutableStateOf(!isLaunchedFromPowerAmp) }
-        Scaffold(topBar = { TopBar() }) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(it),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
+        Scaffold(topBar = { TopBar(canNavigateBack = false, navigateUp = {}) }) { innerPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = AppScreen.Search.name,
+                modifier = Modifier.padding(innerPadding)
             ) {
-                AnimatedVisibility(
-                    visible = showSearchUi,
-                    enter = slideInVertically {
-                        with(density) { -40.dp.roundToPx() }
-                    } + expandVertically(
-                        expandFrom = Alignment.Bottom
-                    ) + fadeIn(
-                        initialAlpha = 0.3f
-                    ),
-                    exit = slideOutVertically() + shrinkVertically()
-                ) {
-                    SearchUi(searchQuery,
-                        searchTrack,
-                        coarseSearchMode,
-                        onModeChange = { coarseSearchMode = it },
-                        onQueryChange = { searchQuery = it },
-                        onQueryTrackChange = { searchTrack = it },
-                        onSearch = { track ->
-                            isSearching = true
-                            coroutineScope.launch {
-                                try {
-                                    val results = getLyricsForTrack(track)
-                                    searchResultsState.value = results
-                                    if (results.isEmpty()) {
-                                        getString(R.string.no_result).toToast(context)
-                                        Log.e(TAG, "LyricChooserApp: No Result found for $track")
-                                    }
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                } finally {
-                                    isSearching = false
-                                }
-                            }
-                        })
-                    if (isSearching) {
-                        Dialog(
-                            onDismissRequest = { isSearching = false },
-                            DialogProperties(
-                                dismissOnBackPress = true,
-                                dismissOnClickOutside = false
-                            )
-                        ) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(100.dp)
-                                    .background(White, shape = RoundedCornerShape(8.dp))
-                            ) {
-                                CircularProgressIndicator()
+                composable(route = AppScreen.Search.name) {
+                    SearchUi(
+                        viewModel = viewModel,
+                        onSearchComplete = { message ->
+                            if (message.isNullOrEmpty())
+                                navController.navigate(AppScreen.List.name) else {
+                                message.toToast(applicationContext)
                             }
                         }
-                    }
-                }
-                val searchResults by searchResultsState.collectAsState()
-                if (searchResults.isNotEmpty()) {
-                    MakeLyricCards(lyrics = searchResults, componentActivity = this@LyricsChooseActivity, realId = realId)
-                    showSearchUi = false
-                }
-            }
-
-            Box {
-                AnimatedVisibility(
-                    visible = !showSearchUi,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    FAB(
-                        onClick = {
-                            searchResultsState.value = emptyList()
-                            showSearchUi = true
-                        },
                     )
                 }
+                composable(route = AppScreen.List.name) {
+                    val lyrics = viewModel.searchResults.collectAsState().value
+                    val fromPowerAmp =
+                        viewModel.lyricsRequestState.collectAsState().value.isLaunchedFromPowerAmp
+                    MakeLyricCards(
+                        lyrics = lyrics,
+                        fromPowerAmp = fromPowerAmp,
+                        onLyricChosen = { chosenLyrics ->
+                            viewModel.chooseThisLyrics(applicationContext, chosenLyrics)
+                            sleep(500) // when back to PA, lyrics should be there
+                            applicationContext.finish()
+                        },
+                        onNavigateBack = { navController.popBackStack() })
+                }
             }
         }
-    }
-
-    private suspend fun getLyricsForTrack(query: Any): MutableList<Lyric> {
-        val lyrics = withContext(Dispatchers.IO) {
-            LyricsApiHelper().getLyricsForTrack(query)
-        }
-        return lyrics ?: mutableListOf()
     }
 
     @Preview(showSystemUi = true)

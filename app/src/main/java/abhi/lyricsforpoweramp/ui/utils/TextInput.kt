@@ -30,7 +30,7 @@ fun TextInput(
     icon: ImageVector,
     text: String?,
     isError: Boolean,
-    onValueChange: (String?) -> Unit
+    onValueChange: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -52,7 +52,7 @@ fun TextInput(
                 if (text?.isNotEmpty() == true) {
                     Icon(imageVector = Icons.Outlined.Clear,
                         contentDescription = stringResource(R.string.clear_input),
-                        modifier = Modifier.clickable { onValueChange(null) })
+                        modifier = Modifier.clickable { onValueChange("") })
                 } else if (isError) {
                     Icon(
                         imageVector = Icons.Outlined.ErrorOutline,

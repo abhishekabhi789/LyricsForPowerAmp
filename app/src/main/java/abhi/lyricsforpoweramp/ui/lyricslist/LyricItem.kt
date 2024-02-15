@@ -1,12 +1,9 @@
 package abhi.lyricsforpoweramp.ui.lyricslist
 
 import abhi.lyricsforpoweramp.CONTENT_ANIMATION_DURATION
-import abhi.lyricsforpoweramp.PowerAmpIntentUtils
 import abhi.lyricsforpoweramp.R
 import abhi.lyricsforpoweramp.model.Lyric
 import abhi.lyricsforpoweramp.ui.utils.MakeChip
-import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -44,7 +41,12 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun LyricItem(componentActivity:ComponentActivity, lyric: Lyric, realId: Long, modifier: Modifier = Modifier) {
+fun LyricItem(
+    lyric: Lyric,
+    isLaunchedFromPowerAmp: Boolean,
+    onLyricChosen: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     var expanded by remember { mutableStateOf(false) }
     var showPlainLyrics by remember { mutableStateOf(showPlainLyrics(lyric)) }
     //availability of either synced or plain lyrics is ensured while parsing api response
@@ -72,19 +74,12 @@ fun LyricItem(componentActivity:ComponentActivity, lyric: Lyric, realId: Long, m
                     modifier = Modifier.weight(1f)
                 )
 
-                if (realId > 0) {
-                    ChooseThisLyricsButton {
-                        val sent = PowerAmpIntentUtils.sendLyricResponse(
-                            context = componentActivity,
-                            realId = realId,
-                            lyrics = lyric.syncedLyrics
+                if (isLaunchedFromPowerAmp) {
+                    ChooseThisLyricsButton(onClick = {
+                        onLyricChosen(
+                            (lyric.syncedLyrics ?: lyric.plainLyrics)!!
                         )
-                        if (sent) componentActivity.finish() else Toast.makeText(
-                            componentActivity,
-                           componentActivity.getString(R.string.failed_to_send_lyrics_to_poweramp),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    })
                 }
             }
             Text(
