@@ -11,6 +11,12 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -89,15 +95,42 @@ class LyricsChooseActivity : ComponentActivity() {
                 viewModel.updateLyricsRequestDetails(LyricsRequestState(isLaunchedFromPowerAmp = false))
             }
         }
-        Scaffold(topBar = { TopBar() }, snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        },) { innerPadding ->
+        Scaffold(
+            topBar = { TopBar() },
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState)
+            },
+        ) { innerPadding ->
             NavHost(
                 navController = navController,
                 startDestination = AppScreen.Search.name,
                 modifier = Modifier.padding(innerPadding)
             ) {
-                composable(route = AppScreen.Search.name) {
+                composable(
+                    route = AppScreen.Search.name,
+                    enterTransition = {
+                        fadeIn(
+                            animationSpec = tween(durationMillis = CONTENT_ANIMATION_DURATION)
+                        ) + slideIntoContainer(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                stiffness = Spring.StiffnessMediumLow
+                            ),
+                            towards = AnimatedContentTransitionScope.SlideDirection.Down
+                        )
+                    },
+                    exitTransition = {
+                        fadeOut(
+                            animationSpec = tween(durationMillis = CONTENT_ANIMATION_DURATION)
+                        ) + slideOutOfContainer(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                stiffness = Spring.StiffnessMediumLow
+                            ),
+                            towards = AnimatedContentTransitionScope.SlideDirection.Up
+                        )
+                    }
+                ) {
                     SearchUi(
                         viewModel = viewModel,
                         onSearchComplete = { message ->
@@ -110,7 +143,30 @@ class LyricsChooseActivity : ComponentActivity() {
                         }
                     )
                 }
-                composable(route = AppScreen.List.name) {
+                composable(
+                    route = AppScreen.List.name,
+                    enterTransition = {
+                        fadeIn(
+                            animationSpec = tween(durationMillis = CONTENT_ANIMATION_DURATION)
+                        ) + slideIntoContainer(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessMediumLow
+                        ),
+                        towards = AnimatedContentTransitionScope.SlideDirection.Up
+                    )
+                    },
+                    exitTransition = {
+                        fadeOut(
+                            animationSpec = tween(durationMillis = CONTENT_ANIMATION_DURATION)
+                        ) + slideOutOfContainer(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                stiffness = Spring.StiffnessMediumLow
+                            ),
+                            towards = AnimatedContentTransitionScope.SlideDirection.Down
+                        )
+                    }) {
                     val lyrics = viewModel.searchResults.collectAsState().value
                     val fromPowerAmp =
                         viewModel.lyricsRequestState.collectAsState().value.isLaunchedFromPowerAmp
