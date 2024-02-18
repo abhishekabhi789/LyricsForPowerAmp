@@ -40,7 +40,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.maxmpz.poweramp.player.PowerampAPI
 import kotlinx.coroutines.launch
-import java.lang.Thread.sleep
 
 enum class AppScreen { Search, List; }
 
@@ -174,8 +173,10 @@ class LyricsChooseActivity : ComponentActivity() {
                         lyrics = lyrics,
                         fromPowerAmp = fromPowerAmp,
                         onLyricChosen = { chosenLyrics ->
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Sending lyrics")
+                            }
                             viewModel.chooseThisLyrics(applicationContext, chosenLyrics)
-                            sleep(500) // when back to PA, lyrics should be there
                             applicationContext.finish()
                         },
                         onNavigateBack = { navController.popBackStack() })

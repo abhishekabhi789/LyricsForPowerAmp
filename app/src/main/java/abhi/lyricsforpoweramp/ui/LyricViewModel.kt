@@ -75,16 +75,15 @@ class LyricViewModel : ViewModel() {
         }
         searchJob = viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                _searchResults.update {
-                    LyricsApiHelper().getLyricsForTrack(searchQuery) ?: listOf()
-                }
+                LyricsApiHelper.getLyricsForTrack(searchQuery, onResult = { list ->
+                    _searchResults.update { list }
+                }, onError = { error -> onSearchFail(error) })
+
             }
             if (searchJob?.isCancelled == true) {
                 onSearchFail("Cancelled")
-            } else if (_searchResults.value.isEmpty()) {
-                Log.e(TAG, "performSearch: search result is empty")
-                onSearchFail("No results")
-            } else {
+            }
+            if (_searchResults.value.isNotEmpty()) {
                 onSearchSuccess()
             }
         }

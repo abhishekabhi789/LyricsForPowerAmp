@@ -15,13 +15,17 @@ import java.net.URL
 import java.net.URLEncoder
 
 /**Helper to interacts with LRCLIB*/
-class LyricsApiHelper {
+object LyricsApiHelper {
     private val TAG = javaClass.simpleName
-    private val API_BASE_URL = "https://lrclib.net/api/"
+    private const val API_BASE_URL = "https://lrclib.net/api/"
 
-    private suspend fun makeApiRequest(params: String): String? {
+    private suspend fun makeApiRequest(
+        params: String,
+        onResult: (String) -> Unit,
+        onFail: (String) -> Unit
+    ) {
         Log.d(TAG, "makeApiRequest: $params")
-        return try {
+        try {
             withContext(Dispatchers.IO) {
                 val url = API_BASE_URL + params
                 val connection = URL(url).openConnection() as HttpURLConnection
@@ -36,28 +40,32 @@ class LyricsApiHelper {
                         response.append(line)
                     }
                     reader.close()
-                    response.toString()
+                    onResult(response.toString())
                 } else {
-                    Log.e(TAG, "makeGetRequest: Network Request Failed")
-                    null
+                    Log.e(TAG, "makeGetRequest: Network Request Failed, $responseCode")
+                    onFail("Request Failed, HTTP $responseCode")
                 }
             }
         } catch (e: MalformedURLException) {
             Log.e(TAG, "Malformed URL: $params", e)
-            null
+            onFail("Request Failed, Malformed URL: $params")
         } catch (e: IOException) {
             Log.e(TAG, "IO Exception during network request: ${e.message}", e)
-            null
+            onFail("Request Failed, Network error.")
         } catch (e: Exception) {
             Log.e(TAG, "Unexpected Exception during network request: ${e.message}", e)
-            null
+            onFail("Request Failed, Exception ${e.message}")
         }
     }
 
     /**Performs a search to get the best matching lyrics for the track.
      * @see <a href="https://lrclib.net/docs#:~:text=tranxuanthang/lrcget).-,Get%20lyrics%20with%20a%20track%27s%20signature,-GET">
      *     LRCLIB#Get lyrics with a track's signature</a>*/
-    suspend fun getTopMatchingLyrics(track: Track): String? {
+    suspend fun getTopMatchingLyrics(
+        track: Track,
+        onResult: (String?) -> Unit,
+        onFail: (String) -> Unit
+    ) {
         val requestParams = buildString {
             append("get?")
             if (!track.trackName.isNullOrEmpty()) append("track_name=${encode(track.trackName!!)}")
@@ -65,17 +73,21 @@ class LyricsApiHelper {
             if (!track.albumName.isNullOrEmpty()) append("&album_name=${encode(track.albumName!!)}")
             if (track.duration != null && track.duration!! > 0) append("&duration=${track.duration}")
         }
-        val response = makeApiRequest(requestParams)
-        return if (!response.isNullOrEmpty()) {
+        makeApiRequest(requestParams, onResult = { response ->
             val result = Gson().fromJson(response, Lyric::class.java)
-            result.syncedLyrics ?: result.plainLyrics
-        } else null
+            Log.d(TAG, "getTopMatchingLyrics: search result ${result.trackName}")
+            onResult(result.syncedLyrics ?: result.plainLyrics)
+        }, onFail = { error -> onFail(error) })
     }
 
     /** Performs search for the given input.
      * @see <a href="https://lrclib.net/docs#:~:text=s%20example%20response.-,Search%20for%20lyrics%20records,-GET">
      *     LRCLIB#Search for lyrics records</a>*/
-    suspend fun getLyricsForTrack(query: Any): List<Lyric>? {
+    suspend fun getLyricsForTrack(
+        query: Any,
+        onResult: (List<Lyric>) -> Unit,
+        onError: (String) -> Unit
+    ) {
         val requestParams: String = when (query) {
             is String -> buildString { append("search?q=${encode(query)}") }
             is Track ->
@@ -85,22 +97,22 @@ class LyricsApiHelper {
                     if (!query.artistName.isNullOrEmpty()) append("&artist_name=${encode(query.artistName!!)}")
                     if (!query.albumName.isNullOrEmpty()) append("&album_name=${encode(query.albumName!!)}")
                 }
+
             else -> {
-                Log.e(TAG, "Invalid query type: $query")
-                return null
+                val error = "Invalid query type: $query"
+                Log.e(TAG, error)
+                error
             }
         }
         Log.d(TAG, "getLyricsForTrack: $requestParams")
-        val searchResponse = makeApiRequest(requestParams)
-        if (searchResponse.isNullOrEmpty()) {
-            Log.e(TAG, "searchTrackInfo: No search result for $query")
-            return null
-        }
-        val validLyrics = parseSearchResponse(searchResponse)
-        return if (validLyrics.isNullOrEmpty()) {
-            Log.e(TAG, "searchTrackInfo: failed to parseJson $searchResponse")
-            null
-        } else validLyrics
+        makeApiRequest(requestParams, onResult = { results ->
+            val parsedResponse = parseSearchResponse(results)
+            if (!parsedResponse.isNullOrEmpty()) {
+                Log.d(TAG, "getLyricsForTrack: found ${parsedResponse.size} results")
+                onResult(parsedResponse)
+            } else onError("No result found")
+        }, onFail = { error -> onError(error) })
+
     }
 
     /**Converts JSON response into List of [Lyric].
