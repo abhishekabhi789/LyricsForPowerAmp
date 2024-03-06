@@ -14,4 +14,11 @@
     <string name="synced_lyrics_short">Synced</string>
     <string name="coarse_search">Coarse Search</string>
     <string name="fine_search">Fine Search</string>
+    <string name="choose_lyrics_button_description">choose this lyrics</string>
+    <string name="list_ui_fab_description">Go back to search screen</string>
+    <string name="plain_lyrics">Plain Lyrics</string>
+    <string name="synced_lyrics">Synced Lyrics</string>
+    <string name="github_repo_button_description">Visit Github Repo</string>
+    <string name="response_footer_text">Lyrics powered by Lyrics for PowerAmp</string>
+    <string name="no_lyrics_response">Couldn\'t find lyrics for this track.\n                            | Try adjusting the search parameters.</string>
 </resources>

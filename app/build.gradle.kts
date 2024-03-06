@@ -6,15 +6,15 @@ plugins {
 }
 
 android {
-    namespace = "abhi.lyricsforpoweramp"
+    namespace = "io.github.abhishekabhi789.lyricsforpoweramp"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "abhi.lyricsforpoweramp"
+        applicationId = "io.github.abhishekabhi789.lyricsforpoweramp"
         minSdk = 21
         targetSdk = 34
-        versionCode = 6
-        versionName = "0.6"
+        versionCode = 7
+        versionName = "0.7"
         archivesName = "Lyrics4PowerAmp-v$versionName"
         vectorDrawables {
             useSupportLibrary = true
@@ -24,6 +24,7 @@ android {
     buildTypes {
         debug {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -31,6 +32,7 @@ android {
         }
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

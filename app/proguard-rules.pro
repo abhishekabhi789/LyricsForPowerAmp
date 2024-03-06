@@ -20,4 +20,4 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 -dontobfuscate
--keep class abhi.lyricsforpoweramp.model.Lyric {*;}
+-keep class io.github.abhishekabhi789.lyricsforpoweramp.model.Lyric {*;}
