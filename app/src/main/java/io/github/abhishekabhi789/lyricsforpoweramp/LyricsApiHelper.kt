@@ -19,6 +19,8 @@ import java.net.URLEncoder
 object LyricsApiHelper {
     private val TAG = javaClass.simpleName
     private const val API_BASE_URL = "https://lrclib.net/api/"
+    private const val CONNECTION_TIMEOUT = 5000
+    private const val READ_TIMEOUT = 30000
 
     private suspend fun makeApiRequest(
         params: String,
@@ -30,8 +32,8 @@ object LyricsApiHelper {
             withContext(Dispatchers.IO) {
                 val url = API_BASE_URL + params
                 val connection = URL(url).openConnection() as HttpURLConnection
-                connection.connectTimeout = 5000
-                connection.readTimeout = 30000
+                connection.connectTimeout = CONNECTION_TIMEOUT
+                connection.readTimeout = READ_TIMEOUT
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Content-Type", "application/json")
                 val responseCode = connection.responseCode
@@ -69,7 +71,7 @@ object LyricsApiHelper {
      *     LRCLIB#Get lyrics with a track's signature</a>*/
     suspend fun getTopMatchingLyrics(
         track: Track,
-        onResult: (String?) -> Unit,
+        onResult: (Lyric) -> Unit,
         onFail: (String) -> Unit
     ) {
         val requestParams = buildString {
@@ -84,7 +86,7 @@ object LyricsApiHelper {
             onResult = { response ->
                 val result = Gson().fromJson(response, Lyric::class.java)
                 Log.d(TAG, "getTopMatchingLyrics: search result ${result.trackName}")
-                onResult(result.syncedLyrics ?: result.plainLyrics)
+                onResult(result)
             },
             onFail = { error -> onFail(error) })
     }

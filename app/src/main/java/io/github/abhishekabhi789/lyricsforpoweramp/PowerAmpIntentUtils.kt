@@ -52,20 +52,20 @@ object PowerAmpIntentUtils {
         return name
     }
 
-    /***
+    /**
      * Sends the prepared lyric data to PowerAmp.
      * @param context required to send intent
      * @param realId to identify the track to attach the lyric
      * @param lyrics lyrics to be returned
+     * @param infoLine which will be shown as a footer text in the PowerAmp lyrics UI
      * @return a [Boolean] representing success status
      */
     fun sendLyricResponse(
         context: Context,
         realId: Long,
-        lyrics: String?
+        lyrics: String?,
+        infoLine:String = context.getString(R.string.response_footer_text)
     ): Boolean {
-        val infoLine: String? =
-            if ((realId and 0x1L) == 0L) context.getString(R.string.response_footer_text) else null
         val intent = Intent(PowerampAPI.Lyrics.ACTION_UPDATE_LYRICS).apply {
             putExtra(PowerampAPI.EXTRA_ID, realId)
             putExtra(PowerampAPI.Lyrics.EXTRA_LYRICS, lyrics)
