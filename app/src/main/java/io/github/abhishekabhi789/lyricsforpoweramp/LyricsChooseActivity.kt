@@ -76,7 +76,7 @@ class LyricsChooseActivity : ComponentActivity() {
         when (intent?.action) {
             PowerampAPI.Lyrics.ACTION_LYRICS_LINK -> {
                 val realId = intent.getLongExtra(PowerampAPI.Track.REAL_ID, PowerampAPI.NO_ID)
-                val requestedTrack = PowerAmpIntentUtils.makeTrack(intent)
+                val requestedTrack = PowerAmpIntentUtils.makeTrack(this, intent)
                 viewModel.updateLyricsRequestDetails(
                     LyricsRequestState(
                         isLaunchedFromPowerAmp = true,
@@ -87,7 +87,8 @@ class LyricsChooseActivity : ComponentActivity() {
                     InputState(
                         queryString = requestedTrack.trackName ?: "",
                         queryTrack = requestedTrack,
-                        searchMode = InputState.SearchMode.Fine
+                        searchMode = if (requestedTrack.artistName.isNullOrEmpty() && requestedTrack.albumName.isNullOrEmpty())
+                            InputState.SearchMode.Coarse else InputState.SearchMode.Fine
                     )
                 )
             }

@@ -88,7 +88,7 @@ class LyricViewModel : ViewModel() {
 
     /** Will send the chosen lyrics to PowerAmp.
      * @return [Boolean] indicating request attempt result*/
-    fun chooseThisLyrics(context: Context, lyric: String): Boolean {
+    fun chooseThisLyrics(context: Context, lyric: Lyric): Boolean {
         return PowerAmpIntentUtils.sendLyricResponse(
             context = context,
             realId = _lyricsRequestState.value.realId!!,

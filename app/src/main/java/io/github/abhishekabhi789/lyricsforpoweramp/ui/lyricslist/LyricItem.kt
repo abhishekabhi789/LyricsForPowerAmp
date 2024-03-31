@@ -44,7 +44,7 @@ import io.github.abhishekabhi789.lyricsforpoweramp.ui.utils.MakeChip
 fun LyricItem(
     lyric: Lyric,
     isLaunchedFromPowerAmp: Boolean,
-    onLyricChosen: (String) -> Unit,
+    onLyricChosen: (Lyric) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -77,11 +77,7 @@ fun LyricItem(
                 )
 
                 if (isLaunchedFromPowerAmp) {
-                    ChooseThisLyricsButton(onClick = {
-                        onLyricChosen(
-                            (lyric.syncedLyrics ?: lyric.plainLyrics)!!
-                        )
-                    })
+                    ChooseThisLyricsButton(onClick = { onLyricChosen(lyric) })
                 }
             }
             Text(

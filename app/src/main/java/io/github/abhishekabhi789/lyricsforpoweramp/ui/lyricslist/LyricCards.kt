@@ -19,7 +19,7 @@ import io.github.abhishekabhi789.lyricsforpoweramp.ui.utils.FAB
 fun MakeLyricCards(
     lyrics: List<Lyric>,
     fromPowerAmp: Boolean,
-    onLyricChosen: (String) -> Unit,
+    onLyricChosen: (Lyric) -> Unit,
     onNavigateBack: () -> Unit
 ) {
     LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {

@@ -51,8 +51,7 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
 //        clear error when changing search tab
         emptyInputError = false
     }
-    val tabs =
-        listOf(stringResource(R.string.coarse_search), stringResource(R.string.fine_search))
+    val tabs = listOf(stringResource(R.string.coarse_search), stringResource(R.string.fine_search))
     if (isSearching) {
         Dialog(
             onDismissRequest = { isSearching = false; viewModel.abortSearch() },
@@ -88,6 +87,7 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
                 )
             }
         }
+        // TODO: add swipe to change selected tab 
         Spacer(modifier = Modifier.padding(8.dp))
         if (inputState.searchMode == InputState.SearchMode.Coarse) {
             TextInput(

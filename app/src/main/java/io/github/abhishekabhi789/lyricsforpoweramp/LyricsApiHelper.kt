@@ -48,7 +48,7 @@ object LyricsApiHelper {
                     onResult(response.toString())
                 } else {
                     Log.e(TAG, "makeGetRequest: Network Request Failed, $responseCode")
-                    onFail("Request Failed, HTTP $responseCode")
+                    onFail("Request Failed, HTTP $responseCode: ${connection.responseMessage}")
                 }
             }
         } catch (e: MalformedURLException) {

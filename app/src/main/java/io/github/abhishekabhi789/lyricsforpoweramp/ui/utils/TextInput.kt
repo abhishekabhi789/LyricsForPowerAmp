@@ -1,5 +1,7 @@
 package io.github.abhishekabhi789.lyricsforpoweramp.ui.utils
 
+import android.app.AlertDialog
+import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -30,8 +33,12 @@ fun TextInput(
     icon: ImageVector,
     text: String?,
     isError: Boolean,
+    isSingleLine: Boolean = false,
+    imeAction: ImeAction = ImeAction.Done,
+    clearWithoutWarn: Boolean = true,
     onValueChange: (String) -> Unit
 ) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -41,6 +48,7 @@ fun TextInput(
             value = text ?: "",
             onValueChange = { onValueChange(it) },
             label = { Text(label) },
+            singleLine = isSingleLine,
             leadingIcon = {
                 Icon(
                     icon,
@@ -52,7 +60,13 @@ fun TextInput(
                 if (text?.isNotEmpty() == true) {
                     Icon(imageVector = Icons.Outlined.Clear,
                         contentDescription = stringResource(R.string.clear_input),
-                        modifier = Modifier.clickable { onValueChange("") })
+                        modifier = Modifier.clickable {
+                            if (clearWithoutWarn) onValueChange("")
+                            else showFieldClearWarning(
+                                context = context,
+                                fieldLabel = label,
+                                onConfirm = { onValueChange("") })
+                        })
                 } else if (isError) {
                     Icon(
                         imageVector = Icons.Outlined.ErrorOutline,
@@ -72,12 +86,26 @@ fun TextInput(
             isError = isError,
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Done,
+                imeAction = imeAction,
                 capitalization = KeyboardCapitalization.Words
             ),
             modifier = Modifier.fillMaxWidth()
         )
     }
+}
+
+fun showFieldClearWarning(context: Context, fieldLabel: String, onConfirm: () -> Unit) {
+    val builder = AlertDialog.Builder(context).apply {
+        setTitle(context.getString(R.string.input_clear_confirmation_message, fieldLabel))
+        setPositiveButton(context.getString(R.string.yes)) { dialog, _ ->
+            onConfirm()
+            dialog.dismiss()
+        }
+        setNegativeButton(context.getString(R.string.no)) { dialog, _ ->
+            dialog.dismiss()
+        }
+    }
+    builder.create().show()
 }
 
 @Preview(showBackground = true)
