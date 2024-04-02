@@ -1,7 +1,5 @@
 package io.github.abhishekabhi789.lyricsforpoweramp.ui.utils
 
-import android.app.AlertDialog
-import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,14 +9,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -33,12 +37,12 @@ fun TextInput(
     icon: ImageVector,
     text: String?,
     isError: Boolean,
-    isSingleLine: Boolean = false,
+    isSingleLine: Boolean = true,
     imeAction: ImeAction = ImeAction.Done,
     clearWithoutWarn: Boolean = true,
     onValueChange: (String) -> Unit
 ) {
-    val context = LocalContext.current
+    var showClearWarningDialog: Boolean by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -62,10 +66,7 @@ fun TextInput(
                         contentDescription = stringResource(R.string.clear_input),
                         modifier = Modifier.clickable {
                             if (clearWithoutWarn) onValueChange("")
-                            else showFieldClearWarning(
-                                context = context,
-                                fieldLabel = label,
-                                onConfirm = { onValueChange("") })
+                            else showClearWarningDialog = true
                         })
                 } else if (isError) {
                     Icon(
@@ -92,20 +93,37 @@ fun TextInput(
             modifier = Modifier.fillMaxWidth()
         )
     }
+    if (showClearWarningDialog) {
+        ShowFieldClearWarning(
+            fieldLabel = label,
+            onConfirm = { onValueChange("") },
+            onDismiss = { showClearWarningDialog = false }
+        )
+    }
 }
 
-fun showFieldClearWarning(context: Context, fieldLabel: String, onConfirm: () -> Unit) {
-    val builder = AlertDialog.Builder(context).apply {
-        setTitle(context.getString(R.string.input_clear_confirmation_message, fieldLabel))
-        setPositiveButton(context.getString(R.string.yes)) { dialog, _ ->
-            onConfirm()
-            dialog.dismiss()
-        }
-        setNegativeButton(context.getString(R.string.no)) { dialog, _ ->
-            dialog.dismiss()
-        }
-    }
-    builder.create().show()
+@Composable
+fun ShowFieldClearWarning(
+    fieldLabel: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        icon = { Icon(imageVector = Icons.Outlined.Warning, contentDescription = null) },
+        title = { Text(stringResource(id = R.string.clear_field_title)) },
+        text = { Text(stringResource(R.string.input_clear_confirmation_message, fieldLabel)) },
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = { onConfirm(); onDismiss() }) {
+                Text(stringResource(R.string.yes))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.no))
+            }
+        },
+    )
 }
 
 @Preview(showBackground = true)

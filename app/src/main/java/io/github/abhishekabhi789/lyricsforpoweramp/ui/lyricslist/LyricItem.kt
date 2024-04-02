@@ -18,8 +18,8 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,21 +37,21 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import io.github.abhishekabhi789.lyricsforpoweramp.CONTENT_ANIMATION_DURATION
 import io.github.abhishekabhi789.lyricsforpoweramp.R
-import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyric
+import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.utils.MakeChip
 
 @Composable
 fun LyricItem(
-    lyric: Lyric,
+    lyrics: Lyrics,
     isLaunchedFromPowerAmp: Boolean,
-    onLyricChosen: (Lyric) -> Unit,
+    onLyricChosen: (Lyrics) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var showPlainLyrics by remember { mutableStateOf(showPlainLyrics(lyric)) }
+    var showPlainLyrics by remember { mutableStateOf(showPlainLyrics(lyrics)) }
     //availability of either synced or plain lyrics is ensured while parsing api response
-    val currentLyrics = (if (showPlainLyrics) lyric.plainLyrics else lyric.syncedLyrics)!!
-    val checkPlainLyricsChip = currentLyrics == lyric.plainLyrics
+    val currentLyrics = (if (showPlainLyrics) lyrics.plainLyrics else lyrics.syncedLyrics)!!
+    val checkPlainLyricsChip = currentLyrics == lyrics.plainLyrics
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
@@ -70,42 +70,42 @@ fun LyricItem(
         ) {
             Row(modifier = Modifier.wrapContentHeight()) {
                 Text(
-                    text = lyric.trackName,
+                    text = lyrics.trackName,
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.weight(1f)
                 )
 
                 if (isLaunchedFromPowerAmp) {
-                    ChooseThisLyricsButton(onClick = { onLyricChosen(lyric) })
+                    ChooseThisLyricsButton(onClick = { onLyricChosen(lyrics) })
                 }
             }
             Text(
-                text = lyric.artistName,
+                text = lyrics.artistName,
                 color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
             Text(
-                text = lyric.albumName,
+                text = lyrics.albumName,
                 color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier
             )
             Row {
                 Text(
-                    text = lyric.getFormattedDuration(),
+                    text = lyrics.getFormattedDuration(),
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                if (lyric.plainLyrics != null) {
+                if (lyrics.plainLyrics != null) {
                     MakeChip(
                         label = stringResource(R.string.plain_lyrics_short),
                         selected = checkPlainLyricsChip,
                         drawable = R.drawable.ic_plain_lyrics
                     ) { showPlainLyrics = true }
                 }
-                if (lyric.syncedLyrics != null) {
+                if (lyrics.syncedLyrics != null) {
                     MakeChip(
                         label = stringResource(R.string.synced_lyrics_short),
                         selected = !checkPlainLyricsChip,
@@ -114,12 +114,12 @@ fun LyricItem(
                 }
 
             }
-            Divider(modifier = Modifier.padding(4.dp))
+            HorizontalDivider(modifier = Modifier.padding(4.dp))
 
             AnimatedContent(
                 currentLyrics,
                 transitionSpec = {
-                    if (currentLyrics == lyric.plainLyrics) {
+                    if (currentLyrics == lyrics.plainLyrics) {
                         slideInHorizontally(
                             animationSpec = tween(CONTENT_ANIMATION_DURATION),
                             initialOffsetX = { fullWidth -> -fullWidth }
@@ -170,6 +170,6 @@ private fun ChooseThisLyricsButton(onClick: () -> Unit) {
     }
 }
 
-private fun showPlainLyrics(lyric: Lyric): Boolean {
-    return lyric.plainLyrics != null
+private fun showPlainLyrics(lyrics: Lyrics): Boolean {
+    return lyrics.plainLyrics != null
 }

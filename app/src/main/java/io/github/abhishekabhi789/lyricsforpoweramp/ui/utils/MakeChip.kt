@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import io.github.abhishekabhi789.lyricsforpoweramp.CONTENT_ANIMATION_DURATION
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MakeChip(
     label: String,
@@ -53,11 +51,17 @@ fun MakeChip(
 @Composable
 fun PreviewChip() {
     Row {
-        MakeChip(label = stringResource(R.string.plain_lyrics), selected = true, drawable = R.drawable.ic_plain_lyrics) {
-
-        }
-        MakeChip(label = stringResource(R.string.synced_lyrics), selected = false, drawable = R.drawable.ic_synced_lyrics) {
-
-        }
+        MakeChip(
+            label = stringResource(R.string.plain_lyrics),
+            selected = true,
+            drawable = R.drawable.ic_plain_lyrics,
+            onClick = {}
+        )
+        MakeChip(
+            label = stringResource(R.string.synced_lyrics),
+            selected = false,
+            drawable = R.drawable.ic_synced_lyrics,
+            onClick = {}
+        )
     }
 }

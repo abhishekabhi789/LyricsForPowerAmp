@@ -34,7 +34,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.maxmpz.poweramp.player.PowerampAPI
 import io.github.abhishekabhi789.lyricsforpoweramp.model.InputState
-import io.github.abhishekabhi789.lyricsforpoweramp.model.LyricsRequestState
+import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.lyricslist.MakeLyricCards
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.search.SearchUi
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.theme.LyricsForPowerAmpTheme
@@ -75,14 +75,8 @@ class LyricsChooseActivity : ComponentActivity() {
         val snackbarHostState = remember { SnackbarHostState() }
         when (intent?.action) {
             PowerampAPI.Lyrics.ACTION_LYRICS_LINK -> {
-                val realId = intent.getLongExtra(PowerampAPI.Track.REAL_ID, PowerampAPI.NO_ID)
                 val requestedTrack = PowerAmpIntentUtils.makeTrack(this, intent)
-                viewModel.updateLyricsRequestDetails(
-                    LyricsRequestState(
-                        isLaunchedFromPowerAmp = true,
-                        realId = realId,
-                    )
-                )
+                viewModel.updateLyricsRequestDetails(requestedTrack)
                 viewModel.updateInputState(
                     InputState(
                         queryString = requestedTrack.trackName ?: "",
@@ -94,7 +88,7 @@ class LyricsChooseActivity : ComponentActivity() {
             }
 
             else -> {
-                viewModel.updateLyricsRequestDetails(LyricsRequestState(isLaunchedFromPowerAmp = false))
+                viewModel.updateLyricsRequestDetails(Track())
             }
         }
         Scaffold(
@@ -172,10 +166,10 @@ class LyricsChooseActivity : ComponentActivity() {
                     }) {
                     val lyrics = viewModel.searchResults.collectAsState().value
                     val fromPowerAmp =
-                        viewModel.lyricsRequestState.collectAsState().value.isLaunchedFromPowerAmp
+                        viewModel.inputState.collectAsState().value.queryTrack.realId != null
                     MakeLyricCards(
                         lyrics = lyrics,
-                        fromPowerAmp = fromPowerAmp,
+                        sendToPowerAmp = fromPowerAmp,
                         onLyricChosen = { chosenLyrics ->
                             scope.launch {
                                 snackbarHostState.showSnackbar("Sending lyrics")

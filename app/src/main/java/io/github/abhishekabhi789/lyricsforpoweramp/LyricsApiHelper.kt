@@ -2,7 +2,7 @@ package io.github.abhishekabhi789.lyricsforpoweramp
 
 import android.util.Log
 import com.google.gson.Gson
-import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyric
+import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -47,8 +47,11 @@ object LyricsApiHelper {
                     reader.close()
                     onResult(response.toString())
                 } else {
-                    Log.e(TAG, "makeGetRequest: Network Request Failed, $responseCode")
-                    onFail("Request Failed, HTTP $responseCode: ${connection.responseMessage}")
+                    Log.e(
+                        TAG,
+                        "makeGetRequest: Network Request Failed, $responseCode ${connection.responseMessage}"
+                    )
+                    onFail("Request Failed, HTTP $responseCode: ${connection.responseMessage} ")
                 }
             }
         } catch (e: MalformedURLException) {
@@ -71,7 +74,7 @@ object LyricsApiHelper {
      *     LRCLIB#Get lyrics with a track's signature</a>*/
     suspend fun getTopMatchingLyrics(
         track: Track,
-        onResult: (Lyric) -> Unit,
+        onResult: (Lyrics) -> Unit,
         onFail: (String) -> Unit
     ) {
         val requestParams = buildString {
@@ -84,7 +87,7 @@ object LyricsApiHelper {
         makeApiRequest(
             requestParams,
             onResult = { response ->
-                val result = Gson().fromJson(response, Lyric::class.java)
+                val result = Gson().fromJson(response, Lyrics::class.java)
                 Log.d(TAG, "getTopMatchingLyrics: search result ${result.trackName}")
                 onResult(result)
             },
@@ -92,11 +95,12 @@ object LyricsApiHelper {
     }
 
     /** Performs search for the given input.
+     * @param query either the query string or a valid instance of [Track]
      * @see <a href="https://lrclib.net/docs#:~:text=s%20example%20response.-,Search%20for%20lyrics%20records,-GET">
      *     LRCLIB#Search for lyrics records</a>*/
     suspend fun getLyricsForTrack(
         query: Any,
-        onResult: (List<Lyric>) -> Unit,
+        onResult: (List<Lyrics>) -> Unit,
         onError: (String) -> Unit
     ) {
         val requestParams: String = when (query) {
@@ -133,10 +137,10 @@ object LyricsApiHelper {
 
     }
 
-    /**Converts JSON response into List of [Lyric].
+    /**Converts JSON response into List of [Lyrics].
      * Ensures either plain or synced lyrics present in each list items.*/
-    private fun parseSearchResponse(searchResponse: String?): List<Lyric>? {
-        val results: Array<Lyric>? = Gson().fromJson(searchResponse, Array<Lyric>::class.java)
+    private fun parseSearchResponse(searchResponse: String?): List<Lyrics>? {
+        val results: Array<Lyrics>? = Gson().fromJson(searchResponse, Array<Lyrics>::class.java)
         return results?.filter { it.plainLyrics != null || it.syncedLyrics != null }?.toList()
     }
 

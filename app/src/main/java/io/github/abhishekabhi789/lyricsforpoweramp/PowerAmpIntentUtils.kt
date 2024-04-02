@@ -5,7 +5,7 @@ import android.content.Intent
 import android.util.Log
 import com.maxmpz.poweramp.player.PowerampAPI
 import com.maxmpz.poweramp.player.PowerampAPIHelper
-import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyric
+import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference.FILTER
@@ -46,6 +46,7 @@ object PowerAmpIntentUtils {
             artistName = processField(context, FILTER.ARTISTS_FILTER, artist),
             albumName = processField(context, FILTER.ALBUM_FILTER, album),
             duration = duration,
+            realId = realId,
             lyrics = null
         )
     }
@@ -74,7 +75,7 @@ object PowerAmpIntentUtils {
     fun sendLyricResponse(
         context: Context,
         realId: Long,
-        lyrics: Lyric?,
+        lyrics: Lyrics?,
     ): Boolean {
         val infoLine = makeInfoLine(context, lyrics)
         val intent = Intent(PowerampAPI.Lyrics.ACTION_UPDATE_LYRICS).apply {
@@ -93,7 +94,7 @@ object PowerAmpIntentUtils {
         return false
     }
 
-    private fun makeInfoLine(context: Context, lyrics: Lyric?): String {
+    private fun makeInfoLine(context: Context, lyrics: Lyrics?): String {
         return buildString {
             if (!lyrics?.trackName.isNullOrEmpty()) {
                 appendLine("${context.getString(R.string.track_title)}: ${lyrics?.trackName}")

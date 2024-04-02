@@ -3,13 +3,17 @@ package io.github.abhishekabhi789.lyricsforpoweramp.ui.search
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Album
@@ -29,6 +33,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +46,9 @@ import io.github.abhishekabhi789.lyricsforpoweramp.LyricViewModel
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.model.InputState
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.utils.TextInput
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
     var emptyInputError: Boolean by remember { mutableStateOf(false) }
@@ -51,7 +58,12 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
 //        clear error when changing search tab
         emptyInputError = false
     }
-    val tabs = listOf(stringResource(R.string.coarse_search), stringResource(R.string.fine_search))
+    val scope = rememberCoroutineScope()
+    val tabs = InputState.SearchMode.entries
+    val pagerState = rememberPagerState(
+        pageCount = { tabs.size },
+        initialPage = tabs.indexOf(inputState.searchMode)
+    )
     if (isSearching) {
         Dialog(
             onDismissRequest = { isSearching = false; viewModel.abortSearch() },
@@ -75,85 +87,99 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
         verticalArrangement = Arrangement.Top,
         modifier = Modifier.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessHigh))
     ) {
-
-        TabRow(selectedTabIndex = InputState.SearchMode.entries.indexOf(inputState.searchMode)) {
-            tabs.forEachIndexed { index, title ->
+        TabRow(selectedTabIndex = pagerState.currentPage) {
+            tabs.forEachIndexed { index, tab ->
                 Tab(
-                    text = { Text(title) },
-                    selected = (inputState.searchMode.ordinal) == index,
+                    text = { Text(stringResource(id = tab.label)) },
+                    selected = pagerState.currentPage == index,
                     onClick = {
-                        viewModel.updateInputState(inputState.copy(searchMode = InputState.SearchMode.entries[index]))
+                        scope.launch { pagerState.animateScrollToPage(index) }
+                        viewModel.updateInputState(inputState.copy(searchMode = tab))
                     },
                 )
             }
         }
-        // TODO: add swipe to change selected tab 
-        Spacer(modifier = Modifier.padding(8.dp))
-        if (inputState.searchMode == InputState.SearchMode.Coarse) {
-            TextInput(
-                label = stringResource(R.string.coarse_search_query),
-                icon = Icons.Outlined.Edit,
-                text = inputState.queryString,
-                isError = emptyInputError
+        HorizontalPager(
+            state = pagerState,
+            verticalAlignment = Alignment.Top,
+            modifier = Modifier.fillMaxSize()
+        ) { pageIndex ->
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
             ) {
-                emptyInputError = false //resetting error on input
-                viewModel.updateInputState(inputState.copy(queryString = it))
+                Spacer(modifier = Modifier.padding(8.dp))
+                when (tabs[pageIndex]) {
+                    InputState.SearchMode.Coarse -> {
+                        TextInput(
+                            label = stringResource(R.string.coarse_search_query),
+                            icon = Icons.Outlined.Edit,
+                            text = inputState.queryString,
+                            isError = emptyInputError
+                        ) {
+                            emptyInputError = false //resetting error on input
+                            viewModel.updateInputState(inputState.copy(queryString = it))
+                        }
+                    }
+
+                    InputState.SearchMode.Fine -> {
+                        TextInput(
+                            label = stringResource(R.string.track_title),
+                            icon = Icons.Outlined.MusicNote,
+                            text = inputState.queryTrack.trackName,
+                            isError = emptyInputError
+                        ) {
+                            emptyInputError = false //resetting error on input
+                            viewModel.updateInputState(
+                                inputState.copy(queryTrack = inputState.queryTrack.copy(trackName = it))
+                            )
+                        }
+                        TextInput(
+                            label = stringResource(R.string.artists),
+                            icon = Icons.Outlined.InterpreterMode,
+                            text = inputState.queryTrack.artistName,
+                            isError = false
+                        ) {
+                            viewModel.updateInputState(
+                                inputState.copy(queryTrack = inputState.queryTrack.copy(artistName = it))
+                            )
+                        }
+                        TextInput(
+                            label = stringResource(R.string.album_name),
+                            icon = Icons.Outlined.Album,
+                            text = inputState.queryTrack.albumName,
+                            isError = false //no need to use error on these fields
+                        ) {
+                            viewModel.updateInputState(
+                                inputState.copy(queryTrack = inputState.queryTrack.copy(albumName = it))
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.padding(8.dp))
+                OutlinedButton(onClick = {
+                    if (viewModel.isValidInput()) {
+                        isSearching = true
+                        viewModel.performSearch(
+                            onSearchSuccess = {
+                                isSearching = false
+                                onSearchComplete(null)
+                            },
+                            onSearchFail = {
+                                isSearching = false
+                                onSearchComplete(it)
+                            })
+                    } else emptyInputError = true
+                }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Search,
+                        contentDescription = stringResource(R.string.search)
+                    )
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    Text(text = stringResource(id = R.string.search))
+                }
             }
-        }
-        if (inputState.searchMode == InputState.SearchMode.Fine) {
-            TextInput(
-                label = stringResource(R.string.track_title),
-                icon = Icons.Outlined.MusicNote,
-                text = inputState.queryTrack.trackName,
-                isError = emptyInputError
-            ) {
-                emptyInputError = false //resetting error on input
-                viewModel.updateInputState(
-                    inputState.copy(queryTrack = inputState.queryTrack.copy(trackName = it))
-                )
-            }
-            TextInput(
-                label = stringResource(R.string.artists),
-                icon = Icons.Outlined.InterpreterMode,
-                text = inputState.queryTrack.artistName,
-                isError = false
-            ) {
-                viewModel.updateInputState(
-                    inputState.copy(queryTrack = inputState.queryTrack.copy(artistName = it))
-                )
-            }
-            TextInput(
-                label = stringResource(R.string.album_name),
-                icon = Icons.Outlined.Album,
-                text = inputState.queryTrack.albumName,
-                isError = false //no need to use error on these fields
-            ) {
-                viewModel.updateInputState(
-                    inputState.copy(queryTrack = inputState.queryTrack.copy(albumName = it))
-                )
-            }
-        }
-        Spacer(modifier = Modifier.padding(8.dp))
-        OutlinedButton(onClick = {
-            if (viewModel.isValidInput()) {
-                isSearching = true
-                viewModel.performSearch(
-                    onSearchSuccess = {
-                        isSearching = false
-                        onSearchComplete(null)
-                    },
-                    onSearchFail = {
-                        isSearching = false
-                        onSearchComplete(it)
-                    })
-            } else emptyInputError = true
-        }) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = stringResource(R.string.search)
-            )
-            Spacer(modifier = Modifier.padding(4.dp))
-            Text(text = stringResource(id = R.string.search))
         }
     }
 }

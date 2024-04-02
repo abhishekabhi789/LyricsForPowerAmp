@@ -6,9 +6,9 @@ import android.content.Intent
 import android.util.Log
 import com.maxmpz.poweramp.player.PowerampAPI
 import io.github.abhishekabhi789.lyricsforpoweramp.PowerAmpIntentUtils.sendLyricResponse
-import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyric
+import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -23,16 +23,15 @@ class LyricsRequestReceiver : BroadcastReceiver() {
 
     private fun handleLyricsRequest(context: Context, intent: Intent) {
         val realId = intent.getLongExtra(PowerampAPI.Track.REAL_ID, PowerampAPI.NO_ID)
-        val isStream =
-            intent.getIntExtra(
-                PowerampAPI.Track.FILE_TYPE,
-                PowerampAPI.Track.FileType.TYPE_UNKNOWN
-            ) == PowerampAPI.Track.FileType.TYPE_STREAM
+        val isStream = intent.getIntExtra(
+            PowerampAPI.Track.FILE_TYPE,
+            PowerampAPI.Track.FileType.TYPE_UNKNOWN
+        ) == PowerampAPI.Track.FileType.TYPE_STREAM
         val track = PowerAmpIntentUtils.makeTrack(context, intent)
         val powerAmpTimeout = 5000L
         val dummyLyric = context.getString(R.string.no_lyrics_response).trimMargin()
         Log.i(TAG, "handleLyricsRequest: request for $track")
-        val job = GlobalScope.launch(Dispatchers.IO) {
+        val job = CoroutineScope(Dispatchers.IO).launch {
             withTimeoutOrNull(powerAmpTimeout - 1000) {
                 if (isStream) {
                     LyricsApiHelper.getLyricsForTrack(track, onResult = {
@@ -49,7 +48,7 @@ class LyricsRequestReceiver : BroadcastReceiver() {
                         },
                         onFail = {
                             Log.d(TAG, "handleLyricsRequest: failed - $it")
-                            val dummyLyrics = Lyric(
+                            val dummyLyrics = Lyrics(
                                 trackName = "",
                                 artistName = "",
                                 albumName = "",

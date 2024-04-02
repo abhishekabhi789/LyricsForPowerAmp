@@ -5,12 +5,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.abhishekabhi789.lyricsforpoweramp.model.InputState
-import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyric
-import io.github.abhishekabhi789.lyricsforpoweramp.model.LyricsRequestState
+import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
+import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -20,28 +19,22 @@ import java.util.Collections.emptyList
 
 class LyricViewModel : ViewModel() {
     private val TAG = javaClass.simpleName
-
-    private val _lyricsRequestState = MutableStateFlow(LyricsRequestState())
-
-    /** Carries lyrics request information from PowerAmp, which is an instance of [LyricsRequestState] */
-    val lyricsRequestState: StateFlow<LyricsRequestState> = _lyricsRequestState.asStateFlow()
-
     private val _inputState = MutableStateFlow(InputState())
 
-    /** Carries user inputs, which is an instance of [InputState] */
+    /** Carries inputs from PowerAmp or user, which is an instance of [InputState] */
     val inputState = _inputState.asStateFlow()
 
-    private var _searchResults = MutableStateFlow<List<Lyric>>(emptyList())
+    private var _searchResults = MutableStateFlow<List<Lyrics>>(emptyList())
 
-    /** Search results as [List]<[Lyric]>*/
+    /** Search results as [List]<[Lyrics]>*/
     val searchResults = _searchResults.asStateFlow()
 
     /** Holds the current search job, inorder to cancel it if needed.*/
     private var searchJob: Job? = null
 
     /** updates [lyricsRequestState]*/
-    fun updateLyricsRequestDetails(newState: LyricsRequestState) {
-        _lyricsRequestState.update { newState }
+    fun updateLyricsRequestDetails(track: Track) {
+        _inputState.update { _inputState.value.copy(queryTrack = track) }
     }
 
     /** Updates [inputState]*/
@@ -86,13 +79,13 @@ class LyricViewModel : ViewModel() {
         }
     }
 
-    /** Will send the chosen lyrics to PowerAmp.
+    /** Will send the chosen lyrics to PowerAmp. Should call when have realId obtained
      * @return [Boolean] indicating request attempt result*/
-    fun chooseThisLyrics(context: Context, lyric: Lyric): Boolean {
+    fun chooseThisLyrics(context: Context, lyrics: Lyrics): Boolean {
         return PowerAmpIntentUtils.sendLyricResponse(
             context = context,
-            realId = _lyricsRequestState.value.realId!!,
-            lyrics = lyric
+            realId = _inputState.value.queryTrack.realId!!,
+            lyrics = lyrics
         )
     }
 }

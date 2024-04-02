@@ -11,22 +11,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
-import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyric
+import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.theme.LyricsForPowerAmpTheme
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.utils.FAB
 
 @Composable
 fun MakeLyricCards(
-    lyrics: List<Lyric>,
-    fromPowerAmp: Boolean,
-    onLyricChosen: (Lyric) -> Unit,
+    lyrics: List<Lyrics>,
+    sendToPowerAmp: Boolean,
+    onLyricChosen: (Lyrics) -> Unit,
     onNavigateBack: () -> Unit
 ) {
     LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         items(lyrics) { lyric ->
             LyricItem(
-                lyric = lyric,
-                isLaunchedFromPowerAmp = fromPowerAmp,
+                lyrics = lyric,
+                isLaunchedFromPowerAmp = sendToPowerAmp,
                 onLyricChosen = onLyricChosen)
         }
     }
@@ -46,7 +46,7 @@ fun LyricListPreview() {
     }
 }
 
-private fun makeDummyLyrics(): List<Lyric> {
+private fun makeDummyLyrics(): List<Lyrics> {
     val json = """[
                        {
                           "name":"Track Name 1",
@@ -79,5 +79,5 @@ private fun makeDummyLyrics(): List<Lyric> {
                           "syncedLyrics":"[00:10.00] 3 Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n [00:20.10] Nunc sit amet turpis et odio egestas finibus vel quis nisi.\n [00:30.20] Duis aliquam tortor non dui tempor, et sodales orci tempus.\n [00:40.30] Mauris fermentum mauris quis commodo viverra.\n [00:50.40] Suspendisse scelerisque lorem eu dolor fringilla ultrices."
                            }
                        ]"""
-    return Gson().fromJson(json, Array<Lyric>::class.java).toList()
+    return Gson().fromJson(json, Array<Lyrics>::class.java).toList()
 }
