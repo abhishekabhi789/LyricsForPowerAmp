@@ -37,7 +37,6 @@ fun TextInput(
     icon: ImageVector,
     text: String?,
     isError: Boolean,
-    isSingleLine: Boolean = true,
     imeAction: ImeAction = ImeAction.Done,
     clearWithoutWarn: Boolean = true,
     onValueChange: (String) -> Unit
@@ -52,7 +51,7 @@ fun TextInput(
             value = text ?: "",
             onValueChange = { onValueChange(it) },
             label = { Text(label) },
-            singleLine = isSingleLine,
+            singleLine = false,
             leadingIcon = {
                 Icon(
                     icon,

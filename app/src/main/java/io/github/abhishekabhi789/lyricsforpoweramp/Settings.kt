@@ -28,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -145,7 +146,9 @@ class Settings : ComponentActivity() {
                         unfocusedContainerColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         focusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedTextColor = MaterialTheme.colorScheme.secondary,
+                        focusedTextColor = MaterialTheme.colorScheme.primary
                     ),
                     textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
                     modifier = Modifier
@@ -156,6 +159,11 @@ class Settings : ComponentActivity() {
                     AppPreference.getThemes().forEach {
                         DropdownMenuItem(
                             text = { Text(text = stringResource(id = it.label)) },
+                            colors = MenuDefaults.itemColors()
+                                .copy(
+                                    textColor = if (it.label == currentTheme.label)
+                                        MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                                ),
                             onClick = {
                                 currentTheme = it
                                 expanded = false
@@ -196,7 +204,6 @@ class Settings : ComponentActivity() {
             label = filter.label,
             icon = icon,
             text = value,
-            isSingleLine = false,
             imeAction = ImeAction.Default,
             clearWithoutWarn = false,
             isError = false
