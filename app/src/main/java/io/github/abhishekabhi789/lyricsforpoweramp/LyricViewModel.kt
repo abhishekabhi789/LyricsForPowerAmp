@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import io.github.abhishekabhi789.lyricsforpoweramp.model.InputState
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
+import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +33,18 @@ class LyricViewModel : ViewModel() {
     /** Holds the current search job, inorder to cancel it if needed.*/
     private var searchJob: Job? = null
 
-    /** updates [lyricsRequestState]*/
+    private val _appTheme = MutableStateFlow(AppPreference.AppTheme.Auto)
+
+    /** Current App theme */
+    val appTheme = _appTheme.asStateFlow()
+
+    /** Updates app theme */
+    fun updateTheme(theme: AppPreference.AppTheme) {
+        _appTheme.update { theme }
+    }
+
+    /** updates requested track in [inputState].
+     * @param track an instance of [Track] may contain track info from PowerAmp]*/
     fun updateLyricsRequestDetails(track: Track) {
         _inputState.update { _inputState.value.copy(queryTrack = track) }
     }

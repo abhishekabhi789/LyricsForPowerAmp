@@ -33,5 +33,10 @@
     <string name="input_clear_confirmation_message">Are your sure to clear the %1$s</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string name="filters">Filters</string>
+    <string name="settings_filter_label">Filters</string>
+    <string name="theme_auto_label">System Default</string>
+    <string name="theme_light_label">Light Theme</string>
+    <string name="theme_dark_label">Dark Theme</string>
+    <string name="settings_app_theme_description">Choose app theme</string>
+    <string name="settings_app_theme_label">App Theme</string>
 </resources>

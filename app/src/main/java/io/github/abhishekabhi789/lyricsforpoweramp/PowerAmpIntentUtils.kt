@@ -69,7 +69,6 @@ object PowerAmpIntentUtils {
      * @param context required to send intent
      * @param realId to identify the track to attach the lyric
      * @param lyrics lyrics to be returned
-     * @param infoLine which will be shown as a footer text in the PowerAmp lyrics UI
      * @return [Boolean] representing success status
      */
     fun sendLyricResponse(

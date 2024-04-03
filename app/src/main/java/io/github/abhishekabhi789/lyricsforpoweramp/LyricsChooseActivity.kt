@@ -20,6 +20,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -39,6 +40,7 @@ import io.github.abhishekabhi789.lyricsforpoweramp.ui.lyricslist.MakeLyricCards
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.search.SearchUi
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.theme.LyricsForPowerAmpTheme
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.utils.TopBar
+import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
 import kotlinx.coroutines.launch
 
 const val CONTENT_ANIMATION_DURATION = 500
@@ -48,12 +50,17 @@ enum class AppScreen { Search, List; }
 class LyricsChooseActivity : ComponentActivity() {
     private val applicationContext: ComponentActivity = this
     private lateinit var density: Density
+    private lateinit var viewModel: LyricViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
         setContent {
-            LyricsForPowerAmpTheme {
+            viewModel = viewModel()
+            val preferredTheme = AppPreference.getTheme(this)
+            viewModel.updateTheme(preferredTheme)
+            val appTheme by viewModel.appTheme.collectAsState()
+            LyricsForPowerAmpTheme(useDarkTheme = AppPreference.isDarkTheme(theme = appTheme)) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.tertiaryContainer,
@@ -64,10 +71,15 @@ class LyricsChooseActivity : ComponentActivity() {
         }
     }
 
+    override fun onRestart() {
+        super.onRestart()
+        val preferredTheme = AppPreference.getTheme(this)
+        viewModel.updateTheme(preferredTheme)
+    }
+
     @SuppressLint("CoroutineCreationDuringComposition")
     @Composable
     private fun LyricChooserApp(
-        viewModel: LyricViewModel = viewModel(),
         navController: NavHostController = rememberNavController()
     ) {
         density = LocalDensity.current
