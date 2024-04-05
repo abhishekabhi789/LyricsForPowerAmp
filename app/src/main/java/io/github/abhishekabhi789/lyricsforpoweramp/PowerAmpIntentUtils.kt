@@ -58,7 +58,7 @@ object PowerAmpIntentUtils {
         //sometimes filename will be in the title, this nameWithoutExtension works somehow even with non filename value
         val fieldValue = if (field == FILTER.TITLE_FILTER && !value.isNullOrEmpty())
             File(value).nameWithoutExtension else value
-        val filter = AppPreference.getFilter(context, field)?.split("[,\\n]".toRegex())
+        val filter = AppPreference.getFilter(context, field)?.lines()
         return filter?.fold(fieldValue) { cleanedValue, filterItem ->
             cleanedValue?.replace(Regex(filterItem, RegexOption.IGNORE_CASE), "")
         } ?: fieldValue

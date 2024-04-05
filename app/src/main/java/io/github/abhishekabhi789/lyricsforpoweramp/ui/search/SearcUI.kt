@@ -103,6 +103,7 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
                 x = searchButtonPosition.x.toInt() - searchButtonSize.width.div(2),
                 y = searchButtonPosition.y.toInt() + searchButtonSize.height.div(2),
             ),
+            animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy),
             label = "search_btn_animation"
         )
         Column(
@@ -130,8 +131,8 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
                     verticalArrangement = Arrangement.Top
                 ) {
                     Spacer(modifier = Modifier.padding(8.dp))
+                    viewModel.updateInputState(inputState.copy(searchMode = tabs[pageIndex]))
                     when (tabs[pageIndex]) {
-
                         InputState.SearchMode.Coarse -> {
                             TextInput(
                                 label = stringResource(R.string.coarse_search_query),
@@ -202,8 +203,8 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
                                     .padding(bottom = 12.dp)
                                     .onGloballyPositioned {
                                         searchButtonPosition = it.positionInParent()
-                                    })
-
+                                    }
+                            )
                         }
                     }
                 }
@@ -231,7 +232,7 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
         ) {
             Icon(
                 imageVector = Icons.Outlined.Search,
-                contentDescription = stringResource(R.string.search)
+                contentDescription = null
             )
             Spacer(modifier = Modifier.padding(4.dp))
             Text(text = stringResource(id = R.string.search))

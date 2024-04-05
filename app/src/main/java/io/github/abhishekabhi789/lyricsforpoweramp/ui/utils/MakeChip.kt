@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -29,7 +29,7 @@ fun MakeChip(
 ) {
     FilterChip(
         onClick = { onClick() },
-        label = { Text(label, style = MaterialTheme.typography.labelSmall) },
+        label = { Text(label) },
         leadingIcon = {
             Box(modifier = Modifier.animateContentSize(keyframes {
                 durationMillis = CONTENT_ANIMATION_DURATION / 2
@@ -38,7 +38,7 @@ fun MakeChip(
                     Icon(
                         painterResource(id = drawable),
                         contentDescription = null,
-                        Modifier.size(12.dp)
+                        Modifier.size(FilterChipDefaults.IconSize)
                     )
                 }
             }

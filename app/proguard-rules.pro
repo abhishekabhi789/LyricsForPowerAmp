@@ -21,3 +21,4 @@
 #-renamesourcefileattribute SourceFile
 -dontobfuscate
 -keep class io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics {*;}
+-dontwarn com.google.errorprone.annotations.MustBeClosed

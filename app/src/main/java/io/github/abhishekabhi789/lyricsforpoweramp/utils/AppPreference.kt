@@ -22,7 +22,7 @@ object AppPreference {
         return sharedPreferences?.getString(filter.key, null)
     }
 
-    fun setFilter(context: Context, filter: FILTER, value: String) {
+    fun setFilter(context: Context, filter: FILTER, value: String?) {
         val sharedPreferences = getSharedPreference(context, FILTER_PREF_NAME)
         sharedPreferences?.edit()?.putString(filter.key, value)?.apply()
     }
@@ -61,9 +61,9 @@ object AppPreference {
         Dark(R.string.theme_dark_label)
     }
 
-    enum class FILTER(val key: String, val label: String) {
-        TITLE_FILTER("title_filter", "Title Filter"),
-        ARTISTS_FILTER("artists_filter", "Artists Filter"),
-        ALBUM_FILTER("album_filter", "Album Filter"),
+    enum class FILTER(val key: String, @StringRes val label: Int) {
+        TITLE_FILTER("title_filter", R.string.filter_title_label),
+        ARTISTS_FILTER("artists_filter", R.string.filter_artists_label),
+        ALBUM_FILTER("album_filter", R.string.filter_album_label),
     }
 }
