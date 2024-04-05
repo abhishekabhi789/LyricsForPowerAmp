@@ -8,13 +8,17 @@ import com.maxmpz.poweramp.player.PowerampAPI
 import io.github.abhishekabhi789.lyricsforpoweramp.PowerAmpIntentUtils.sendLyricResponse
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
+import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.properties.Delegates
 
 class LyricsRequestReceiver : BroadcastReceiver() {
     private val TAG = javaClass.simpleName
+    private var realId by Delegates.notNull<Long>()
+    private lateinit var context: Context
     override fun onReceive(context: Context?, intent: Intent?) {
         when (intent?.action) {
             PowerampAPI.Lyrics.ACTION_NEED_LYRICS ->
@@ -23,7 +27,8 @@ class LyricsRequestReceiver : BroadcastReceiver() {
     }
 
     private fun handleLyricsRequest(context: Context, intent: Intent) {
-        val realId = intent.getLongExtra(PowerampAPI.Track.REAL_ID, PowerampAPI.NO_ID)
+        this.context = context
+        realId = intent.getLongExtra(PowerampAPI.Track.REAL_ID, PowerampAPI.NO_ID)
         val isStream = intent.getIntExtra(
             PowerampAPI.Track.FILE_TYPE,
             PowerampAPI.Track.FileType.TYPE_UNKNOWN
@@ -34,30 +39,32 @@ class LyricsRequestReceiver : BroadcastReceiver() {
         val job = CoroutineScope(Dispatchers.IO).launch {
             withTimeoutOrNull(powerAmpTimeout - 1000) {
                 if (isStream) {
-                    searchForLyrics(context, track, onError = {
+                    searchForLyrics(track) {
                         Log.d(TAG, "handleLyricsRequest: failed - $it")
-                    })
+                        if (AppPreference.getDummyForStreams(context))
+                            sendLyrics(getDummyLyrics(context))
+                    }
                 } else {
                     if (!track.artistName.isNullOrEmpty() && !track.albumName.isNullOrEmpty()) {
                         LyricsApiHelper.getTopMatchingLyrics(
                             track,
-                            onResult = { lyrics ->
-                                sendLyricResponse(context, realId, lyrics)
-                            },
+                            onResult = { lyrics -> sendLyrics(lyrics) },
                             onFail = {
                                 Log.d(TAG, "getTopMatchingLyrics: failed - $it")
                                 launch {
-                                    searchForLyrics(context, track, onError = { errMsg ->
+                                    searchForLyrics(track) { errMsg ->
                                         Log.d(TAG, "handleLyricsRequest: search Failed $errMsg")
-                                        sendLyricResponse(context, realId, getDummyLyrics(context))
-                                    })
+                                        if (AppPreference.getDummyForTracks(context))
+                                            sendLyrics(getDummyLyrics(context))
+
+                                    }
                                 }
                             })
                     } else {
-                        searchForLyrics(context, track, onError = {
+                        searchForLyrics(track) {
                             Log.d(TAG, "getLyricsForTrack: failed - $it")
-                            sendLyricResponse(context, realId, lyrics = getDummyLyrics(context))
-                        })
+                            sendLyrics(getDummyLyrics(context))
+                        }
                     }
                 }
             }
@@ -71,12 +78,15 @@ class LyricsRequestReceiver : BroadcastReceiver() {
         }
     }
 
-    private suspend fun searchForLyrics(context: Context, track: Track, onError: (String) -> Unit) {
-        val realId = track.realId ?: PowerampAPI.NO_ID
+    private suspend fun searchForLyrics(track: Track, onError: (String) -> Unit) {
         LyricsApiHelper.getLyricsForTrack(track, onResult = {
             val lyrics = it.first()
-            sendLyricResponse(context, realId, lyrics)
+            sendLyrics(lyrics)
         }, onError = onError)
+    }
+
+    private fun sendLyrics(lyrics: Lyrics) {
+        sendLyricResponse(context, realId, lyrics)
     }
 
     private fun getDummyLyrics(context: Context): Lyrics {

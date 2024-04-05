@@ -39,4 +39,7 @@
     <string name="filter_title_label">Title Filter</string>
     <string name="filter_artists_label">Artists Filter</string>
     <string name="filter_album_label">Album Filter</string>
+    <string name="settings_general_label">Misc</string>
+    <string name="settings_dummy_lyrics_stream">Set dummy lyrics for streams</string>
+    <string name="settings_dummy_lyrics_track">Set dummy lyrics for tracks</string>
 </resources>

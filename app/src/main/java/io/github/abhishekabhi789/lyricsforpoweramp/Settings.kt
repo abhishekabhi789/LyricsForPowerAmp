@@ -27,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Album
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.FilterAlt
@@ -47,6 +48,7 @@ import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -125,10 +127,13 @@ class Settings : ComponentActivity() {
             Column(
                 Modifier
                     .padding(contentPadding)
+                    .padding(horizontal = 16.dp)
                     .consumeWindowInsets(contentPadding)
                     .verticalScroll(rememberScrollState())
             ) {
                 AppThemeSettings()
+                HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                GeneralSettings()
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
                 FilterSettings()
             }
@@ -141,30 +146,16 @@ class Settings : ComponentActivity() {
         val context = LocalContext.current
         var expanded by remember { mutableStateOf(false) }
         var currentTheme by remember { mutableStateOf(AppPreference.getTheme(context)) }
-        Row(modifier = Modifier.padding(horizontal = 16.dp)) {
-            Column(
-                horizontalAlignment = Alignment.Start, modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-            ) {
-                Row {
-                    Icon(
-                        imageVector = Icons.Default.ColorLens,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-                    Text(
-                        text = stringResource(R.string.settings_app_theme_label),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-                Text(
-                    text = stringResource(R.string.settings_app_theme_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
+        Title(
+            label = stringResource(id = R.string.settings_app_theme_label),
+            icon = Icons.Default.ColorLens
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = stringResource(R.string.settings_app_theme_description),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.weight(1f)
+            )
             ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
                 TextField(
                     value = stringResource(id = currentTheme.label),
@@ -206,26 +197,39 @@ class Settings : ComponentActivity() {
     }
 
     @Composable
+    fun GeneralSettings() {
+        val context = LocalContext.current
+        var dummyLyricsForTracks by remember {
+            mutableStateOf(AppPreference.getDummyForTracks(context))
+        }
+        var dummyLyricsForStreams by remember {
+            mutableStateOf(AppPreference.getDummyForStreams(context))
+        }
+
+        Title(label = stringResource(R.string.settings_general_label), icon = Icons.Default.Build)
+        SwitchSettings(
+            label = stringResource(R.string.settings_dummy_lyrics_track),
+            enabled = dummyLyricsForTracks,
+            onChange = { dummyLyricsForTracks = it; AppPreference.setDummyForTracks(context, it) }
+        )
+        SwitchSettings(
+            label = stringResource(R.string.settings_dummy_lyrics_stream),
+            enabled = dummyLyricsForStreams,
+            onChange = { dummyLyricsForStreams = it; AppPreference.setDummyForStreams(context, it) }
+        )
+    }
+
+    @Composable
     fun FilterSettings() {
         val context = LocalContext.current
-        Row(Modifier.padding(horizontal = 16.dp)) {
-            Icon(
-                imageVector = Icons.Default.FilterAlt,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            Text(
-                text = stringResource(R.string.settings_filter_label),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        }
+        Title(
+            label = stringResource(R.string.settings_filter_label),
+            icon = Icons.Default.FilterAlt
+        )
         Spacer(modifier = Modifier.padding(4.dp))
         Text(
             text = stringResource(R.string.settings_filter_caption),
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(horizontal = 16.dp)
         )
         Spacer(modifier = Modifier.padding(8.dp))
         FilterField(context, FILTER.TITLE_FILTER, icon = Icons.Default.MusicNote)
@@ -254,7 +258,7 @@ class Settings : ComponentActivity() {
                 }
             )
         }
-        Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+        Box(Modifier.padding(vertical = 8.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -349,6 +353,38 @@ class Settings : ComponentActivity() {
                     updateSavedChips()
                 },
                 onDismiss = { showClearWarningDialog = false }
+            )
+        }
+    }
+
+    @Composable
+    fun Title(label: String, icon: ImageVector) {
+        Row {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.tertiary,
+            )
+        }
+    }
+
+    @Composable
+    fun SwitchSettings(label: String, enabled: Boolean, onChange: (Boolean) -> Unit) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.weight(1f)
+            )
+            Switch(
+                checked = enabled,
+                onCheckedChange = onChange
             )
         }
     }

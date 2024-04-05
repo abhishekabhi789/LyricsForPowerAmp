@@ -12,9 +12,32 @@ import io.github.abhishekabhi789.lyricsforpoweramp.R
 object AppPreference {
     private const val FILTER_PREF_NAME = "filter_preference"
     private const val UI_PREF_NAME = "ui_preference"
+    private const val OTHER_PREF = "other_preference"
+    private const val DUMMY_LYRICS_STREAMS = "set_dummy_lyrics_for_streams"
+    private const val DUMMY_LYRICS_TRACKS = "set_dummy_lyrics_for_tracks"
     private const val UI_THEME_KEY = "app_theme"
     private fun getSharedPreference(context: Context, prefName: String): SharedPreferences? {
         return context.getSharedPreferences(prefName, Context.MODE_PRIVATE)
+    }
+
+    fun getDummyForStreams(context: Context): Boolean {
+        val sharedPreferences = getSharedPreference(context, OTHER_PREF)
+        return sharedPreferences?.getBoolean(DUMMY_LYRICS_STREAMS, false) ?: false
+    }
+
+    fun setDummyForStreams(context: Context, choice: Boolean) {
+        val sharedPreferences = getSharedPreference(context, OTHER_PREF)
+        sharedPreferences?.edit()?.putBoolean(DUMMY_LYRICS_STREAMS, choice)?.apply()
+    }
+
+    fun getDummyForTracks(context: Context): Boolean {
+        val sharedPreferences = getSharedPreference(context, OTHER_PREF)
+        return sharedPreferences?.getBoolean(DUMMY_LYRICS_TRACKS, false) ?: false
+    }
+
+    fun setDummyForTracks(context: Context, choice: Boolean) {
+        val sharedPreferences = getSharedPreference(context, OTHER_PREF)
+        sharedPreferences?.edit()?.putBoolean(DUMMY_LYRICS_TRACKS, choice)?.apply()
     }
 
     fun getFilter(context: Context, filter: FILTER): String? {
