@@ -136,7 +136,6 @@ private fun viewGithub(context: Context) {
 
 private fun openLink(context: Context, link: String) {
     Intent(Intent.ACTION_VIEW, Uri.parse(link)).also { context.startActivity(it) }
-
 }
 
 @Preview(showBackground = true)

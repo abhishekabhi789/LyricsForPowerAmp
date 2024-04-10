@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -42,6 +44,7 @@ import io.github.abhishekabhi789.lyricsforpoweramp.ui.theme.LyricsForPowerAmpThe
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.utils.TopBar
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
 import kotlinx.coroutines.launch
+import java.lang.Thread.sleep
 
 const val CONTENT_ANIMATION_DURATION = 500
 
@@ -79,9 +82,8 @@ class LyricsChooseActivity : ComponentActivity() {
 
     @SuppressLint("CoroutineCreationDuringComposition")
     @Composable
-    private fun LyricChooserApp(
-        navController: NavHostController = rememberNavController()
-    ) {
+    private fun LyricChooserApp(navController: NavHostController = rememberNavController()) {
+        val keyboardController = LocalSoftwareKeyboardController.current
         density = LocalDensity.current
         val scope = rememberCoroutineScope()
         val snackbarHostState = remember { SnackbarHostState() }
@@ -105,9 +107,7 @@ class LyricsChooseActivity : ComponentActivity() {
         }
         Scaffold(
             topBar = { TopBar() },
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             modifier = Modifier.background(color = MaterialTheme.colorScheme.surface)
         ) { innerPadding ->
             NavHost(
@@ -145,8 +145,15 @@ class LyricsChooseActivity : ComponentActivity() {
                         onSearchComplete = { message ->
                             if (message.isNullOrEmpty())
                                 navController.navigate(AppScreen.List.name) else {
+                                keyboardController?.hide()
                                 scope.launch {
-                                    snackbarHostState.showSnackbar(message)
+                                    when (snackbarHostState.showSnackbar(
+                                        message = message,
+                                        withDismissAction = true
+                                    )) {
+                                        SnackbarResult.Dismissed -> keyboardController?.show()
+                                        else -> {}
+                                    }
                                 }
                             }
                         }
@@ -187,6 +194,7 @@ class LyricsChooseActivity : ComponentActivity() {
                                 snackbarHostState.showSnackbar("Sending lyrics")
                             }
                             viewModel.chooseThisLyrics(applicationContext, chosenLyrics)
+                            sleep(500)
                             applicationContext.finish()
                         },
                         onNavigateBack = { navController.popBackStack() })
