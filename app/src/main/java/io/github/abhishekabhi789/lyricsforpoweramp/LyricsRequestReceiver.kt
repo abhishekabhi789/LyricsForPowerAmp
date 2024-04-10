@@ -51,6 +51,7 @@ class LyricsRequestReceiver : BroadcastReceiver() {
                             onResult = { lyrics -> sendLyrics(lyrics) },
                             onFail = {
                                 Log.d(TAG, "getTopMatchingLyrics: failed - $it")
+                                sendLyrics(getDummyLyrics(context))
                                 launch {
                                     searchForLyrics(track) { errMsg ->
                                         Log.d(TAG, "handleLyricsRequest: search Failed $errMsg")

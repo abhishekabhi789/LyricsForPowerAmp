@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -37,15 +36,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -77,10 +77,7 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
     if (isSearching) {
         Dialog(
             onDismissRequest = { isSearching = false; viewModel.abortSearch() },
-            DialogProperties(
-                dismissOnBackPress = true,
-                dismissOnClickOutside = false
-            )
+            properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false)
         ) {
             Box(
                 contentAlignment = Alignment.Center,
@@ -96,12 +93,15 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
         }
     }
     Box(modifier = Modifier.fillMaxSize()) {
-        var searchButtonPosition by remember { mutableStateOf(Offset.Zero) }
+        val currentView = LocalView.current
         var searchButtonSize by remember { mutableStateOf(IntSize.Zero) }
+        var searchButtonYPosition by remember {
+            mutableIntStateOf(currentView.height.div(0.75f).toInt())
+        }
         val offset by animateIntOffsetAsState(
             targetValue = IntOffset(
-                x = searchButtonPosition.x.toInt() - searchButtonSize.width.div(2),
-                y = searchButtonPosition.y.toInt() + searchButtonSize.height.div(2),
+                x = (currentView.width.div(2) - searchButtonSize.width.div(2)),
+                y = searchButtonYPosition + searchButtonSize.height.div(2),
             ),
             animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy),
             label = "search_btn_animation"
@@ -128,44 +128,45 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
             ) { pageIndex ->
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Top
+                    verticalArrangement = Arrangement.Top,
+                    modifier = Modifier
+                        .padding(top = 12.dp)
+                        .padding(horizontal = 16.dp)
                 ) {
-                    Spacer(modifier = Modifier.padding(8.dp))
-                    viewModel.updateInputState(inputState.copy(searchMode = tabs[pageIndex]))
+                    viewModel.updateInputState(inputState.copy(searchMode = tabs[pagerState.currentPage]))
                     when (tabs[pageIndex]) {
                         InputState.SearchMode.Coarse -> {
                             TextInput(
                                 label = stringResource(R.string.coarse_search_query),
                                 icon = Icons.Outlined.Edit,
                                 text = inputState.queryString,
-                                isError = emptyInputError
+                                isError = emptyInputError,
+                                modifier = Modifier
                             ) {
                                 emptyInputError = false //resetting error on input
                                 viewModel.updateInputState(inputState.copy(queryString = it))
                             }
-                            Spacer(modifier = Modifier.onGloballyPositioned {
-                                searchButtonPosition = it.positionInParent()
-                            })
+                            Spacer(modifier = Modifier
+                                .padding(vertical = 16.dp)
+                                .onGloballyPositioned {
+                                    if (pagerState.currentPage == 0)
+                                        searchButtonYPosition = it.positionInParent().y.toInt()
+                                })
                         }
 
                         InputState.SearchMode.Fine -> {
-                            Column(
-                                modifier = Modifier
-                                    .verticalScroll(rememberScrollState())
-                                    .wrapContentHeight()
-                            ) {
+                            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                                 TextInput(
                                     label = stringResource(R.string.track_title),
                                     icon = Icons.Outlined.MusicNote,
                                     text = inputState.queryTrack.trackName,
-                                    isError = emptyInputError
+                                    isError = emptyInputError,
+                                    modifier = Modifier
                                 ) {
                                     emptyInputError = false //resetting error on input
                                     viewModel.updateInputState(
                                         inputState.copy(
-                                            queryTrack = inputState.queryTrack.copy(
-                                                trackName = it
-                                            )
+                                            queryTrack = inputState.queryTrack.copy(trackName = it)
                                         )
                                     )
                                 }
@@ -173,13 +174,12 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
                                     label = stringResource(R.string.artists),
                                     icon = Icons.Outlined.InterpreterMode,
                                     text = inputState.queryTrack.artistName,
-                                    isError = false
+                                    isError = false,
+                                    modifier = Modifier
                                 ) {
                                     viewModel.updateInputState(
                                         inputState.copy(
-                                            queryTrack = inputState.queryTrack.copy(
-                                                artistName = it
-                                            )
+                                            queryTrack = inputState.queryTrack.copy(artistName = it)
                                         )
                                     )
                                 }
@@ -187,22 +187,22 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
                                     label = stringResource(R.string.album_name),
                                     icon = Icons.Outlined.Album,
                                     text = inputState.queryTrack.albumName,
-                                    isError = false //no need to use error on these fields
+                                    isError = false, //no need to use error on these fields
+                                    modifier = Modifier
                                 ) {
                                     viewModel.updateInputState(
                                         inputState.copy(
-                                            queryTrack = inputState.queryTrack.copy(
-                                                albumName = it
-                                            )
+                                            queryTrack = inputState.queryTrack.copy(albumName = it)
                                         )
                                     )
                                 }
                             }
                             Spacer(
                                 modifier = Modifier
-                                    .padding(bottom = 12.dp)
+                                    .padding(vertical = 16.dp)
                                     .onGloballyPositioned {
-                                        searchButtonPosition = it.positionInParent()
+                                        if (pagerState.currentPage == 1)
+                                            searchButtonYPosition = it.positionInParent().y.toInt()
                                     }
                             )
                         }
@@ -230,10 +230,7 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
                 .onGloballyPositioned { searchButtonSize = it.size }
                 .offset { offset }
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = null
-            )
+            Icon(imageVector = Icons.Outlined.Search, contentDescription = null)
             Spacer(modifier = Modifier.padding(4.dp))
             Text(text = stringResource(id = R.string.search))
         }

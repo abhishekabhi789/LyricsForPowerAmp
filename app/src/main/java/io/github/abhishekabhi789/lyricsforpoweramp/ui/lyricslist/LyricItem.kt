@@ -57,8 +57,8 @@ fun LyricItem(
     var expanded by remember { mutableStateOf(false) }
     //availability of either synced or plain lyrics is ensured while parsing api response
     ElevatedCard(
-        modifier = modifier,
-        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
+        modifier = modifier
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
