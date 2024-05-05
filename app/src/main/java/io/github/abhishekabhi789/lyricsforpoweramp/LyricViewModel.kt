@@ -71,7 +71,7 @@ class LyricViewModel : ViewModel() {
         }
         searchJob = viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                LyricsApiHelper.getLyricsForTrack(searchQuery, onResult = { list ->
+                LyricsApiHelper.searchLyricsForTrack(searchQuery, onResult = { list ->
                     _searchResults.update { list }
                 }, onError = { error -> onSearchFail(error) })
             }

@@ -37,57 +37,69 @@ class LyricsRequestReceiver : BroadcastReceiver() {
         val powerAmpTimeout = 5000L
         Log.i(TAG, "handleLyricsRequest: request for $track")
         val job = CoroutineScope(Dispatchers.IO).launch {
-            withTimeoutOrNull(powerAmpTimeout - 1000) {
-                if (isStream) {
-                    searchForLyrics(track) {
-                        Log.d(TAG, "handleLyricsRequest: failed - $it")
-                        if (AppPreference.getDummyForStreams(context))
-                            sendLyrics(getDummyLyrics(context))
-                    }
-                } else {
-                    if (!track.artistName.isNullOrEmpty() && !track.albumName.isNullOrEmpty()) {
-                        LyricsApiHelper.getTopMatchingLyrics(
-                            track,
-                            onResult = { lyrics -> sendLyrics(lyrics) },
-                            onFail = {
-                                Log.d(TAG, "getTopMatchingLyrics: failed - $it")
-                                sendLyrics(getDummyLyrics(context))
-                                launch {
-                                    searchForLyrics(track) { errMsg ->
-                                        Log.d(TAG, "handleLyricsRequest: search Failed $errMsg")
-                                        if (AppPreference.getDummyForTracks(context))
-                                            sendLyrics(getDummyLyrics(context))
-
-                                    }
-                                }
-                            })
-                    } else {
-                        searchForLyrics(track) {
-                            Log.d(TAG, "getLyricsForTrack: failed - $it")
-                            sendLyrics(getDummyLyrics(context))
-                        }
-                    }
-                }
+            withTimeoutOrNull(powerAmpTimeout) {
+                getLyrics(context, track, onError = {
+                    Log.e(TAG, "handleLyricsRequest: $it")
+                    sendLyrics(isStream, null)
+                }, onSuccess = { sendLyrics(isStream, it) })
             }
         }
-        if (job.isCancelled) {
-            Log.d(TAG, "handleLyricsRequest: timeout cancelled")
-            sendLyricResponse(context, realId, lyrics = null)
-        }
-        if (job.isCompleted) {
-            Log.d(TAG, "handleLyricsRequest: request process completed")
+
+        job.invokeOnCompletion {
+            if (job.isCancelled) {
+                Log.d(TAG, "handleLyricsRequest: timeout cancelled")
+                sendLyricResponse(context, realId, lyrics = null)
+            }
+            Log.i(TAG, "handleLyricsRequest: network request completed")
         }
     }
 
-    private suspend fun searchForLyrics(track: Track, onError: (String) -> Unit) {
-        LyricsApiHelper.getLyricsForTrack(track, onResult = {
-            val lyrics = it.first()
-            sendLyrics(lyrics)
-        }, onError = onError)
+    private suspend fun getLyrics(
+        context: Context,
+        track: Track,
+        onSuccess: (Lyrics) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val useFallbackMethod = AppPreference.getSearchIfGetFailed(context)
+        Log.i(TAG, "getLyrics: fallback to search permitted- $useFallbackMethod")
+        LyricsApiHelper.getLyricsForTracks(
+            track = track,
+            onResult = onSuccess,
+            onFail = { errMsg ->
+                if (useFallbackMethod) {
+                    Log.i(TAG, "getLyrics: trying with search method")
+                    CoroutineScope(Dispatchers.IO).launch {
+                        LyricsApiHelper.searchLyricsForTrack(
+                            query = track,
+                            onResult = { onSuccess(it.first()) },
+                            onError = {
+                                onError("searchLyricsForTrack: failed - $it")
+                            }
+                        )
+                    }
+                } else {
+                    Log.e(TAG, "getLyrics: no results, fallback not permitted")
+                    onError("getLyricsForTracks: failed - $errMsg")
+                }
+            })
     }
 
-    private fun sendLyrics(lyrics: Lyrics) {
-        sendLyricResponse(context, realId, lyrics)
+    private fun sendLyrics(isStream: Boolean, lyrics: Lyrics?): Boolean {
+        if (lyrics == null) {
+            val sendDummy = if (isStream) AppPreference.getDummyForStreams(context)
+            else AppPreference.getDummyForTracks(context)
+            if (sendDummy) {
+                val sent = sendLyricResponse(context, realId, getDummyLyrics(context))
+                Log.i(TAG, "sendLyrics: dummyLyrics sent : $sent ")
+                return sent
+            }
+            Log.i(TAG, "sendLyrics: dummyLyrics won't be send")
+            return false
+        } else {
+            val sent = sendLyricResponse(context, realId, lyrics)
+            Log.i(TAG, "sendLyrics: lyrics sent : $sent")
+            return sent
+        }
     }
 
     private fun getDummyLyrics(context: Context): Lyrics {

@@ -183,33 +183,44 @@ class Settings : ComponentActivity() {
     @Composable
     fun GeneralSettings(modifier: Modifier = Modifier) {
         val context = LocalContext.current
-        var dummyLyricsForTracks by remember {
-            mutableStateOf(AppPreference.getDummyForTracks(context))
-        }
-        var dummyLyricsForStreams by remember {
-            mutableStateOf(AppPreference.getDummyForStreams(context))
-        }
-
         Title(
             label = stringResource(R.string.settings_general_label),
             icon = Icons.Default.Build,
             modifier = modifier
         )
+        var dummyLyricsForTracks by remember {
+            mutableStateOf(AppPreference.getDummyForTracks(context))
+        }
         SwitchSettings(
             label = stringResource(R.string.settings_dummy_lyrics_track),
             enabled = dummyLyricsForTracks,
-            onChange = { dummyLyricsForTracks = it; AppPreference.setDummyForTracks(context, it) },
             modifier = modifier
-        )
+        ) {
+            dummyLyricsForTracks = it
+            AppPreference.setDummyForTracks(context, it)
+        }
+        var dummyLyricsForStreams by remember {
+            mutableStateOf(AppPreference.getDummyForStreams(context))
+        }
         SwitchSettings(
             label = stringResource(R.string.settings_dummy_lyrics_stream),
             enabled = dummyLyricsForStreams,
-            onChange = {
-                dummyLyricsForStreams = it
-                AppPreference.setDummyForStreams(context, it)
-            },
             modifier = modifier
-        )
+        ) {
+            dummyLyricsForStreams = it
+            AppPreference.setDummyForStreams(context, it)
+        }
+        var fallbackToSearch by remember {
+            mutableStateOf(AppPreference.getSearchIfGetFailed(context))
+        }
+        SwitchSettings(
+            label = stringResource(id = R.string.settings_fallback_to_search_if_get_failed),
+            enabled = fallbackToSearch,
+            modifier = modifier
+        ) {
+            fallbackToSearch = it
+            AppPreference.setSearchIfGetFailed(context, it)
+        }
     }
 
     @Composable

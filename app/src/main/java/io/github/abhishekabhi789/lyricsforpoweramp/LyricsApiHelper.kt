@@ -65,7 +65,7 @@ object LyricsApiHelper {
         } catch (e: IOException) {
             Log.e(TAG, "IO Exception during network request: ${e.message}", e)
             onFail("Request Failed, Network error.")
-        }catch (e: SocketTimeoutException) {
+        } catch (e: SocketTimeoutException) {
             Log.e(TAG, "makeApiRequest: timeout exception", e)
             onFail("Request time out")
         } catch (e: Exception) {
@@ -77,7 +77,7 @@ object LyricsApiHelper {
     /**Performs a search to get the best matching lyrics for the track.
      * @see <a href="https://lrclib.net/docs#:~:text=tranxuanthang/lrcget).-,Get%20lyrics%20with%20a%20track%27s%20signature,-GET">
      *     LRCLIB#Get lyrics with a track's signature</a>*/
-    suspend fun getTopMatchingLyrics(
+    suspend fun getLyricsForTracks(
         track: Track,
         onResult: (Lyrics) -> Unit,
         onFail: (String) -> Unit
@@ -93,17 +93,17 @@ object LyricsApiHelper {
             requestParams,
             onResult = { response ->
                 val result = Gson().fromJson(response, Lyrics::class.java)
-                Log.d(TAG, "getTopMatchingLyrics: search result ${result.trackName}")
+                Log.d(TAG, "getLyricsForTracks: search result ${result.trackName}")
                 onResult(result)
             },
             onFail = { error -> onFail(error) })
     }
 
     /** Performs search for the given input.
-     * @param query either the query string or a valid instance of [Track]
+     * @param query either the query string or a valid [Track]
      * @see <a href="https://lrclib.net/docs#:~:text=s%20example%20response.-,Search%20for%20lyrics%20records,-GET">
      *     LRCLIB#Search for lyrics records</a>*/
-    suspend fun getLyricsForTrack(
+    suspend fun searchLyricsForTrack(
         query: Any,
         onResult: (List<Lyrics>) -> Unit,
         onError: (String) -> Unit
@@ -125,21 +125,20 @@ object LyricsApiHelper {
                 error
             }
         }
-        Log.d(TAG, "getLyricsForTrack: $requestParams")
+        Log.d(TAG, "searchLyricsForTrack: $requestParams")
         makeApiRequest(
             requestParams,
             onResult = { results ->
                 val parsedResponse = parseSearchResponse(results)
                 if (!parsedResponse.isNullOrEmpty()) {
-                    Log.d(TAG, "getLyricsForTrack: found ${parsedResponse.size} results")
+                    Log.d(TAG, "searchLyricsForTrack: found ${parsedResponse.size} results")
                     onResult(parsedResponse)
                 } else {
-                    Log.e(TAG, "getLyricsForTrack: no result found $results")
+                    Log.e(TAG, "searchLyricsForTrack: no result found $results")
                     onError("No result found")
                 }
             },
             onFail = { error -> onError(error) })
-
     }
 
     /**Converts JSON response into List of [Lyrics].

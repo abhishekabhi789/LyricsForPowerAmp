@@ -42,4 +42,5 @@
     <string name="settings_general_label">Misc</string>
     <string name="settings_dummy_lyrics_stream">Set dummy lyrics for streams</string>
     <string name="settings_dummy_lyrics_track">Set dummy lyrics for tracks</string>
+    <string name="settings_fallback_to_search_if_get_failed">Try with search if get method fails</string>
 </resources>

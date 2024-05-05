@@ -16,6 +16,7 @@ object AppPreference {
     private const val DUMMY_LYRICS_STREAMS = "set_dummy_lyrics_for_streams"
     private const val DUMMY_LYRICS_TRACKS = "set_dummy_lyrics_for_tracks"
     private const val UI_THEME_KEY = "app_theme"
+    private const val SEARCH_IF_GET_FAILED = "perform_search_if_get_failed"
     private fun getSharedPreference(context: Context, prefName: String): SharedPreferences? {
         return context.getSharedPreferences(prefName, Context.MODE_PRIVATE)
     }
@@ -68,6 +69,17 @@ object AppPreference {
         sharedPreferences?.edit()?.putString(UI_THEME_KEY, theme.name)?.apply()
         viewModel.updateTheme(theme)
     }
+
+    fun getSearchIfGetFailed(context: Context): Boolean {
+        val sharedPreferences = getSharedPreference(context, OTHER_PREF)
+        return sharedPreferences?.getBoolean(SEARCH_IF_GET_FAILED, false) ?: false
+    }
+
+    fun setSearchIfGetFailed(context: Context, choice: Boolean) {
+        val sharedPreferences = getSharedPreference(context, OTHER_PREF)
+        sharedPreferences?.edit()?.putBoolean(SEARCH_IF_GET_FAILED, choice)?.apply()
+    }
+
 
     @Composable
     fun isDarkTheme(theme: AppTheme): Boolean {
