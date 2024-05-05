@@ -20,9 +20,9 @@ import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
@@ -144,14 +145,14 @@ fun LyricItem(
                 MakeChip(
                     label = stringResource(R.string.plain_lyrics_short),
                     selected = lyricPages[pagerState.currentPage] == lyrics.plainLyrics,
-                    drawable = R.drawable.ic_plain_lyrics
+                    icon = R.drawable.ic_plain_lyrics
                 ) { scope.launch { pagerState.animateScrollToPage(0) } }
             }
             if (lyrics.syncedLyrics != null) {
                 MakeChip(
                     label = stringResource(R.string.synced_lyrics_short),
                     selected = lyricPages[pagerState.currentPage] == lyrics.syncedLyrics,
-                    drawable = R.drawable.ic_synced_lyrics
+                    icon = R.drawable.ic_synced_lyrics
                 ) { scope.launch { pagerState.animateScrollToPage(lyricPages.lastIndex) } }
             }
 
@@ -179,11 +180,24 @@ fun LyricItem(
 
 @Composable
 private fun ChooseThisLyricsButton(onClick: () -> Unit) {
-    IconButton(onClick = { onClick() }) {
+    FilledTonalIconButton(onClick = onClick) {
         Icon(
             imageVector = Icons.Default.Done,
             contentDescription = stringResource(R.string.choose_lyrics_button_description),
-            tint = MaterialTheme.colorScheme.secondary
         )
     }
+}
+
+@Preview
+@Composable
+fun PreviewLyricItem() {
+    val data = Lyrics(
+        trackName = "Track Title 1",
+        artistName = "Artists Name 1",
+        albumName = "Album Name 1",
+        duration = 200,
+        plainLyrics = "1 Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n Nunc sit amet turpis et odio egestas finibus vel quis nisi.\n Duis aliquam tortor non dui tempor, et sodales orci tempus.\n Mauris fermentum mauris quis commodo viverra.\n Suspendisse scelerisque lorem eu dolor fringilla ultrices.\n Suspendisse scelerisque lorem eu dolor fringilla ultrices.\n Suspendisse scelerisque lorem eu dolor fringilla ultrices.",
+        syncedLyrics = "[00:10.00] 1 Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n [00:20.10] Nunc sit amet turpis et odio egestas finibus vel quis nisi.\n [00:30.20] Duis aliquam tortor non dui tempor, et sodales orci tempus.\n [00:40.30] Mauris fermentum mauris quis commodo viverra.\n [00:50.40] Suspendisse scelerisque lorem eu dolor fringilla ultrices.\n [01:00.50] Suspendisse scelerisque lorem eu dolor fringilla ultrices.\n [01:10.00] Suspendisse scelerisque lorem eu dolor fringilla ultrices."
+    )
+    LyricItem(lyrics = data, isLaunchedFromPowerAmp = true, onLyricChosen = {})
 }

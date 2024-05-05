@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.abhishekabhi789.lyricsforpoweramp.model.InputState
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
-import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -41,12 +40,6 @@ class LyricViewModel : ViewModel() {
     /** Updates app theme */
     fun updateTheme(theme: AppPreference.AppTheme) {
         _appTheme.update { theme }
-    }
-
-    /** updates requested track in [inputState].
-     * @param track an instance of [Track] may contain track info from PowerAmp]*/
-    fun updateLyricsRequestDetails(track: Track) {
-        _inputState.update { _inputState.value.copy(queryTrack = track) }
     }
 
     /** Updates [inputState]*/
@@ -91,7 +84,7 @@ class LyricViewModel : ViewModel() {
         }
     }
 
-    /** Will send the chosen lyrics to PowerAmp. Should call when have realId obtained
+    /** Will send the chosen lyrics to PowerAmp. Should call when have realId
      * @return [Boolean] indicating request attempt result*/
     fun chooseThisLyrics(context: Context, lyrics: Lyrics): Boolean {
         return PowerAmpIntentUtils.sendLyricResponse(

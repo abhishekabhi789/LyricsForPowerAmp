@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.gson.Gson
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
+import io.github.abhishekabhi789.lyricsforpoweramp.ui.utils.GITHUB_REPO_URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
@@ -35,6 +36,10 @@ object LyricsApiHelper {
                 connection.connectTimeout = CONNECTION_TIMEOUT
                 connection.readTimeout = READ_TIMEOUT
                 connection.requestMethod = "GET"
+                connection.setRequestProperty(
+                    "User-Agent",
+                    "${BuildConfig.APPLICATION_ID}-${BuildConfig.BUILD_TYPE} ${BuildConfig.VERSION_NAME} $GITHUB_REPO_URL"
+                )
                 connection.setRequestProperty("Content-Type", "application/json")
                 val responseCode = connection.responseCode
                 if (responseCode == HttpURLConnection.HTTP_OK) {

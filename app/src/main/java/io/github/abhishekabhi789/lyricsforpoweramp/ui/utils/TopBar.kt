@@ -18,6 +18,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,7 +40,7 @@ import io.github.abhishekabhi789.lyricsforpoweramp.Settings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(modifier: Modifier = Modifier) {
+fun TopBar(scrollBehavior: TopAppBarScrollBehavior, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var showMenu: Boolean by remember { mutableStateOf(false) }
     TopAppBar(
@@ -119,7 +122,7 @@ fun TopBar(modifier: Modifier = Modifier) {
                         )
                     })
             }
-        },
+        }, scrollBehavior = scrollBehavior,
         modifier = modifier
     )
 }
@@ -129,8 +132,8 @@ private fun openTipPage(context: Context) {
     openLink(context, TIP_URL)
 }
 
+const val GITHUB_REPO_URL = "https://github.com/abhishekabhi789/LyricsForPowerAmp"
 private fun viewGithub(context: Context) {
-    val GITHUB_REPO_URL = "https://github.com/abhishekabhi789/LyricsForPowerAmp"
     openLink(context, GITHUB_REPO_URL)
 }
 
@@ -138,8 +141,10 @@ private fun openLink(context: Context, link: String) {
     Intent(Intent.ACTION_VIEW, Uri.parse(link)).also { context.startActivity(it) }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @Composable
 fun TopBarPreview() {
-    TopBar()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    TopBar(scrollBehavior)
 }

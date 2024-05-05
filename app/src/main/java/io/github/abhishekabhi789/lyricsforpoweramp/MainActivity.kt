@@ -2,6 +2,7 @@ package io.github.abhishekabhi789.lyricsforpoweramp
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -13,18 +14,23 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,20 +43,22 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.maxmpz.poweramp.player.PowerampAPI
 import io.github.abhishekabhi789.lyricsforpoweramp.model.InputState
-import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
+import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.lyricslist.MakeLyricCards
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.search.SearchUi
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.theme.LyricsForPowerAmpTheme
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.utils.TopBar
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.lang.Thread.sleep
+import kotlinx.coroutines.withContext
 
 const val CONTENT_ANIMATION_DURATION = 500
 
 enum class AppScreen { Search, List; }
 
 class LyricsChooseActivity : ComponentActivity() {
+    private val TAG = javaClass.simpleName
     private val applicationContext: ComponentActivity = this
     private lateinit var density: Density
     private lateinit var viewModel: LyricViewModel
@@ -80,6 +88,7 @@ class LyricsChooseActivity : ComponentActivity() {
         viewModel.updateTheme(preferredTheme)
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @SuppressLint("CoroutineCreationDuringComposition")
     @Composable
     private fun LyricChooserApp(navController: NavHostController = rememberNavController()) {
@@ -87,10 +96,10 @@ class LyricsChooseActivity : ComponentActivity() {
         density = LocalDensity.current
         val scope = rememberCoroutineScope()
         val snackbarHostState = remember { SnackbarHostState() }
+        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
         when (intent?.action) {
             PowerampAPI.Lyrics.ACTION_LYRICS_LINK -> {
                 val requestedTrack = PowerAmpIntentUtils.makeTrack(this, intent)
-                viewModel.updateLyricsRequestDetails(requestedTrack)
                 viewModel.updateInputState(
                     InputState(
                         queryString = requestedTrack.trackName ?: "",
@@ -100,15 +109,13 @@ class LyricsChooseActivity : ComponentActivity() {
                     )
                 )
             }
-
-            else -> {
-                viewModel.updateLyricsRequestDetails(Track())
-            }
         }
         Scaffold(
-            topBar = { TopBar() },
+            topBar = { TopBar(scrollBehavior) },
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-            modifier = Modifier.background(color = MaterialTheme.colorScheme.surface)
+            modifier = Modifier
+                .background(color = MaterialTheme.colorScheme.surface)
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) { innerPadding ->
             NavHost(
                 navController = navController,
@@ -140,24 +147,21 @@ class LyricsChooseActivity : ComponentActivity() {
                         )
                     }
                 ) {
-                    SearchUi(
-                        viewModel = viewModel,
-                        onSearchComplete = { message ->
-                            if (message.isNullOrEmpty())
-                                navController.navigate(AppScreen.List.name) else {
-                                keyboardController?.hide()
-                                scope.launch {
-                                    when (snackbarHostState.showSnackbar(
-                                        message = message,
-                                        withDismissAction = true
-                                    )) {
-                                        SnackbarResult.Dismissed -> keyboardController?.show()
-                                        else -> {}
-                                    }
+                    SearchUi(viewModel = viewModel) { message ->
+                        if (message.isNullOrEmpty())
+                            navController.navigate(AppScreen.List.name) else {
+                            keyboardController?.hide()
+                            scope.launch {
+                                when (snackbarHostState.showSnackbar(
+                                    message = message,
+                                    withDismissAction = true
+                                )) {
+                                    SnackbarResult.Dismissed -> keyboardController?.show()
+                                    else -> {}
                                 }
                             }
                         }
-                    )
+                    }
                 }
                 composable(
                     route = AppScreen.List.name,
@@ -183,24 +187,60 @@ class LyricsChooseActivity : ComponentActivity() {
                             towards = AnimatedContentTransitionScope.SlideDirection.Down
                         )
                     }) {
-                    val lyrics = viewModel.searchResults.collectAsState().value
+                    val results = viewModel.searchResults.collectAsState().value
                     val fromPowerAmp =
                         viewModel.inputState.collectAsState().value.queryTrack.realId != null
                     MakeLyricCards(
-                        lyrics = lyrics,
+                        lyricsList = results,
                         sendToPowerAmp = fromPowerAmp,
                         onLyricChosen = { chosenLyrics ->
                             scope.launch {
-                                snackbarHostState.showSnackbar("Sending lyrics")
+                                sendLyrics(snackbarHostState, chosenLyrics) {
+                                    if (intent.action == PowerampAPI.Lyrics.ACTION_LYRICS_LINK) applicationContext.finish() else navController.navigateUp()
+                                }
                             }
-                            viewModel.chooseThisLyrics(applicationContext, chosenLyrics)
-                            sleep(500)
-                            applicationContext.finish()
                         },
                         onNavigateBack = { navController.popBackStack() })
                 }
             }
         }
+    }
+
+    private suspend fun sendLyrics(
+        snackbarHostState: SnackbarHostState,
+        chosenLyrics: Lyrics, onComplete: () -> Unit
+    ) {
+        withContext(Dispatchers.Main) {
+            val sent = viewModel.chooseThisLyrics(applicationContext, chosenLyrics)
+            if (sent) {
+                Log.d(TAG, "sendLyrics: sent")
+                when (snackbarHostState.showSnackbar(
+                    message = "Success",
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Short
+                )) {
+                    SnackbarResult.Dismissed -> onComplete()
+                    else -> {}
+                }
+            } else {
+                Log.d(TAG, "sendLyrics: failed")
+                when (snackbarHostState.showSnackbar(
+                    "Failed to send lyrics",
+                    "Retry",
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Short
+                )) {
+                    SnackbarResult.ActionPerformed -> sendLyrics(
+                        snackbarHostState,
+                        chosenLyrics,
+                        onComplete
+                    )
+
+                    SnackbarResult.Dismissed -> onComplete()
+                }
+            }
+        }
+
     }
 
     @Preview(showSystemUi = true)

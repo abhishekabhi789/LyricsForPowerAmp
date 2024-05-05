@@ -14,7 +14,7 @@ import io.github.abhishekabhi789.lyricsforpoweramp.ui.utils.FAB
 
 @Composable
 fun MakeLyricCards(
-    lyrics: List<Lyrics>,
+    lyricsList: List<Lyrics>,
     sendToPowerAmp: Boolean,
     onLyricChosen: (Lyrics) -> Unit,
     onNavigateBack: () -> Unit
@@ -25,7 +25,7 @@ fun MakeLyricCards(
         contentPadding = PaddingValues(8.dp),
         horizontalArrangement = Arrangement.spacedBy(9.dp)
     ) {
-        items(lyrics) { lyric ->
+        items(lyricsList) { lyric ->
             LyricItem(
                 lyrics = lyric,
                 isLaunchedFromPowerAmp = sendToPowerAmp,

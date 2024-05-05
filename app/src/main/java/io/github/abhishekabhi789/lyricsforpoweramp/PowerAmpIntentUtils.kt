@@ -84,9 +84,9 @@ object PowerAmpIntentUtils {
         }
 
         try {
-            PowerampAPIHelper.sendPAIntent(context, intent)
-            Log.i(TAG, "sendLyricResponse: Success")
-            return true
+            val status = PowerampAPIHelper.sendPAIntent(context, intent)
+            Log.i(TAG, "sendLyricResponse: Success $status")
+            return status
         } catch (e: Throwable) {
             e.printStackTrace()
         }
