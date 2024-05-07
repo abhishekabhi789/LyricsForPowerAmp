@@ -26,7 +26,7 @@ fun FAB(onClick: () -> Unit, modifier: Modifier = Modifier) {
                 .padding(all = 16.dp)
                 .align(alignment = Alignment.BottomEnd),
         ) {
-            Icon(Icons.Outlined.Search, stringResource(R.string.list_ui_fab_description))
+            Icon(Icons.Outlined.Search, stringResource(R.string.navigate_back_action))
         }
     }
 }

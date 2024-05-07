@@ -4,6 +4,9 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS"
+        android:minSdkVersion="33" />
 
     <application
         android:enableOnBackInvokedCallback="true"
@@ -14,7 +17,7 @@
         android:theme="@style/SplashScreenTheme"
         tools:targetApi="34">
         <activity
-            android:name=".LyricsChooseActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,6 +25,10 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="com.maxmpz.audioplayer.ACTION_LYRICS_LINK" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="io.github.abhishekabhi789.lyricsforpoweramp.MANUAL_SEARCH_ACTION" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>

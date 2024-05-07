@@ -13,32 +13,10 @@ object AppPreference {
     private const val FILTER_PREF_NAME = "filter_preference"
     private const val UI_PREF_NAME = "ui_preference"
     private const val OTHER_PREF = "other_preference"
-    private const val DUMMY_LYRICS_STREAMS = "set_dummy_lyrics_for_streams"
-    private const val DUMMY_LYRICS_TRACKS = "set_dummy_lyrics_for_tracks"
     private const val UI_THEME_KEY = "app_theme"
     private const val SEARCH_IF_GET_FAILED = "perform_search_if_get_failed"
     private fun getSharedPreference(context: Context, prefName: String): SharedPreferences? {
         return context.getSharedPreferences(prefName, Context.MODE_PRIVATE)
-    }
-
-    fun getDummyForStreams(context: Context): Boolean {
-        val sharedPreferences = getSharedPreference(context, OTHER_PREF)
-        return sharedPreferences?.getBoolean(DUMMY_LYRICS_STREAMS, false) ?: false
-    }
-
-    fun setDummyForStreams(context: Context, choice: Boolean) {
-        val sharedPreferences = getSharedPreference(context, OTHER_PREF)
-        sharedPreferences?.edit()?.putBoolean(DUMMY_LYRICS_STREAMS, choice)?.apply()
-    }
-
-    fun getDummyForTracks(context: Context): Boolean {
-        val sharedPreferences = getSharedPreference(context, OTHER_PREF)
-        return sharedPreferences?.getBoolean(DUMMY_LYRICS_TRACKS, false) ?: false
-    }
-
-    fun setDummyForTracks(context: Context, choice: Boolean) {
-        val sharedPreferences = getSharedPreference(context, OTHER_PREF)
-        sharedPreferences?.edit()?.putBoolean(DUMMY_LYRICS_TRACKS, choice)?.apply()
     }
 
     fun getFilter(context: Context, filter: FILTER): String? {
@@ -91,14 +69,14 @@ object AppPreference {
     }
 
     enum class AppTheme(@StringRes val label: Int) {
-        Auto(R.string.theme_auto_label),
-        Light(R.string.theme_light_label),
-        Dark(R.string.theme_dark_label)
+        Auto(R.string.settings_theme_auto_label),
+        Light(R.string.settings_theme_light_label),
+        Dark(R.string.settings_theme_dark_label)
     }
 
     enum class FILTER(val key: String, @StringRes val label: Int) {
-        TITLE_FILTER("title_filter", R.string.filter_title_label),
-        ARTISTS_FILTER("artists_filter", R.string.filter_artists_label),
-        ALBUM_FILTER("album_filter", R.string.filter_album_label),
+        TITLE_FILTER("title_filter", R.string.settings_filter_title_label),
+        ARTISTS_FILTER("artists_filter", R.string.settings_filter_artists_label),
+        ALBUM_FILTER("album_filter", R.string.settings_filter_album_label),
     }
 }

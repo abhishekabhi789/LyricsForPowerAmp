@@ -142,7 +142,7 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
                     when (tabs[pageIndex]) {
                         InputState.SearchMode.Coarse -> {
                             TextInput(
-                                label = stringResource(R.string.coarse_search_query),
+                                label = stringResource(R.string.input_track_query_label),
                                 icon = Icons.Outlined.Edit,
                                 text = inputState.queryString,
                                 isError = emptyInputError,
@@ -162,7 +162,7 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
                         InputState.SearchMode.Fine -> {
                             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                                 TextInput(
-                                    label = stringResource(R.string.track_title),
+                                    label = stringResource(R.string.input_track_title_label),
                                     icon = Icons.Outlined.MusicNote,
                                     text = inputState.queryTrack.trackName,
                                     isError = emptyInputError,
@@ -176,7 +176,7 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
                                     )
                                 }
                                 TextInput(
-                                    label = stringResource(R.string.artists),
+                                    label = stringResource(R.string.input_track_artists_label),
                                     icon = Icons.Outlined.InterpreterMode,
                                     text = inputState.queryTrack.artistName,
                                     isError = false,
@@ -189,7 +189,7 @@ fun SearchUi(viewModel: LyricViewModel, onSearchComplete: (String?) -> Unit) {
                                     )
                                 }
                                 TextInput(
-                                    label = stringResource(R.string.album_name),
+                                    label = stringResource(R.string.input_track_album_label),
                                     icon = Icons.Outlined.Album,
                                     text = inputState.queryTrack.albumName,
                                     isError = false, //no need to use error on these fields

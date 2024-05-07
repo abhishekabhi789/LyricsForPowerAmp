@@ -57,7 +57,7 @@ const val CONTENT_ANIMATION_DURATION = 500
 
 enum class AppScreen { Search, List; }
 
-class LyricsChooseActivity : ComponentActivity() {
+class MainActivity : ComponentActivity() {
     private val TAG = javaClass.simpleName
     private val applicationContext: ComponentActivity = this
     private lateinit var density: Density
@@ -98,7 +98,7 @@ class LyricsChooseActivity : ComponentActivity() {
         val snackbarHostState = remember { SnackbarHostState() }
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
         when (intent?.action) {
-            PowerampAPI.Lyrics.ACTION_LYRICS_LINK -> {
+            PowerampAPI.Lyrics.ACTION_LYRICS_LINK, LyricsRequestReceiver.MANUAL_SEARCH_ACTION -> {
                 val requestedTrack = PowerAmpIntentUtils.makeTrack(this, intent)
                 viewModel.updateInputState(
                     InputState(
@@ -196,7 +196,13 @@ class LyricsChooseActivity : ComponentActivity() {
                         onLyricChosen = { chosenLyrics ->
                             scope.launch {
                                 sendLyrics(snackbarHostState, chosenLyrics) {
-                                    if (intent.action == PowerampAPI.Lyrics.ACTION_LYRICS_LINK) applicationContext.finish() else navController.navigateUp()
+                                    when (intent.action) {
+                                        PowerampAPI.Lyrics.ACTION_LYRICS_LINK, LyricsRequestReceiver.MANUAL_SEARCH_ACTION -> {
+                                            applicationContext.finish()
+                                        }
+
+                                        else -> navController.navigateUp()
+                                    }
                                 }
                             }
                         },

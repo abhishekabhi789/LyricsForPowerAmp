@@ -1,46 +1,59 @@
 <resources>
     <string name="app_name">Lyrics for PowerAmp</string>
-    <string name="clear_input">Clear Input</string>
+    <!--    general-->
     <string name="error">Error</string>
-    <string name="invalid_input_error">Ensure a valid input</string>
-    <string name="track_title">Track Title</string>
-    <string name="album_name">Album Name</string>
-    <string name="artists">Artists</string>
-    <string name="search">Search</string>
-    <string name="coarse_search_query">Query</string>
-    <string name="plain_lyrics_short">Plain</string>
-    <string name="synced_lyrics_short">Synced</string>
-    <string name="coarse_search">Coarse Search</string>
-    <string name="fine_search">Fine Search</string>
-    <string name="choose_lyrics_button_description">Choose this lyrics</string>
-    <string name="list_ui_fab_description">Go back to search screen</string>
     <string name="plain_lyrics">Plain Lyrics</string>
     <string name="synced_lyrics">Synced Lyrics</string>
-    <string name="top_bar_menu_descriptions">More Options</string>
-    <string name="top_bar_settings">Settings</string>
-    <string name="top_bar_github_repo">Visit Github Repo</string>
-    <string name="top_bar_support">Support Development</string>
-    <string name="response_footer_text">Lyrics powered by Lyrics for PowerAmp</string>
-    <string name="no_lyrics_response">Couldn\'t find lyrics for this track.
-        Try adjusting the search parameters.</string>
+    <string name="plain_lyrics_short">Plain</string>
+    <string name="synced_lyrics_short">Synced</string>
+    <string name="lyrics">Lyrics</string>
+    <string name="track">Track</string>
     <string name="navigate_back_action">Go Back</string>
-    <string name="settings_filter_caption">These words will be removed from respective fields while processing.
-        Case insensitive. Supports regex.</string>
-    <string name="clear_field_title">Clear Field?</string>
-    <string name="input_clear_confirmation_message">Are your sure to clear the %1$s</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string name="settings_filter_label">Filters</string>
-    <string name="theme_auto_label">System Default</string>
-    <string name="theme_light_label">Light Theme</string>
-    <string name="theme_dark_label">Dark Theme</string>
-    <string name="settings_app_theme_description">Choose app theme</string>
+    <string name="response_footer_text">Lyrics powered by Lyrics for PowerAmp</string>
+    <!--    top bar-->
+    <string name="top_bar_menu_descriptions">More Options</string>
+    <string name="top_bar_github_repo">Visit Github Repo</string>
+    <string name="top_bar_support">Support Development</string>
+    <!--    search ui-->
+    <string name="coarse_search">Coarse Search</string>
+    <string name="fine_search">Fine Search</string>
+    <string name="clear_input">Clear Input</string>
+    <string name="invalid_input_error">Ensure a valid input</string>
+    <string name="input_track_query_label">Query</string>
+    <string name="input_track_title_label">Track Title</string>
+    <string name="input_track_artists_label">Artists</string>
+    <string name="input_track_album_label">Album Name</string>
+    <string name="search">Search</string>
+    <!--    lyrics list-->
+    <string name="choose_lyrics_button_description">Choose this lyrics</string>
+    <string name="sending_lyrics">Sending lyrics to PowerAmp</string>
+    <!--    settings-->
+    <string name="top_bar_settings">Settings</string>
     <string name="settings_app_theme_label">App Theme</string>
-    <string name="filter_title_label">Title Filter</string>
-    <string name="filter_artists_label">Artists Filter</string>
-    <string name="filter_album_label">Album Filter</string>
+    <string name="settings_app_theme_description">Choose app theme</string>
+    <string name="settings_theme_auto_label">System Default</string>
+    <string name="settings_theme_light_label">Light Theme</string>
+    <string name="settings_theme_dark_label">Dark Theme</string>
     <string name="settings_general_label">Misc</string>
-    <string name="settings_dummy_lyrics_stream">Set dummy lyrics for streams</string>
-    <string name="settings_dummy_lyrics_track">Set dummy lyrics for tracks</string>
     <string name="settings_fallback_to_search_if_get_failed">Try with search if get method fails</string>
+    <string name="settings_filter_label">Filters</string>
+    <string name="settings_filter_description">These words will be removed from respective fields while processing.
+        Case insensitive. Supports regex.</string>
+    <string name="settings_filter_title_label">Title Filter</string>
+    <string name="settings_filter_artists_label">Artists Filter</string>
+    <string name="settings_filter_album_label">Album Filter</string>
+    <string name="clear_field_title">Clear Field?</string>
+    <string name="input_clear_confirmation_message">Are your sure to clear the %1$s</string>
+    <!--    notifications-->
+    <string name="lyrics_request_handling_notifications">Lyrics Request Handling Notifications</string>
+    <string name="preparing_search_track">Preparing search track</string>
+    <string name="making_network_requests">Making network requests</string>
+    <string name="timeout_cancelled">Timeout cancelled</string>
+    <string name="notification_get_failed_and_trying_search">failed to get, trying search method</string>
+    <string name="sent">sent</string>
+    <string name="could_not_sent">couldn\'t sent</string>
+    <string name="notification_manual_search_suggestion">Tap here to manually search</string>
+    <string name="request_handling_notification_title">Handling Request for</string>
 </resources>

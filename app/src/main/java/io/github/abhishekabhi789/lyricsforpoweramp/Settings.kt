@@ -188,28 +188,6 @@ class Settings : ComponentActivity() {
             icon = Icons.Default.Build,
             modifier = modifier
         )
-        var dummyLyricsForTracks by remember {
-            mutableStateOf(AppPreference.getDummyForTracks(context))
-        }
-        SwitchSettings(
-            label = stringResource(R.string.settings_dummy_lyrics_track),
-            enabled = dummyLyricsForTracks,
-            modifier = modifier
-        ) {
-            dummyLyricsForTracks = it
-            AppPreference.setDummyForTracks(context, it)
-        }
-        var dummyLyricsForStreams by remember {
-            mutableStateOf(AppPreference.getDummyForStreams(context))
-        }
-        SwitchSettings(
-            label = stringResource(R.string.settings_dummy_lyrics_stream),
-            enabled = dummyLyricsForStreams,
-            modifier = modifier
-        ) {
-            dummyLyricsForStreams = it
-            AppPreference.setDummyForStreams(context, it)
-        }
         var fallbackToSearch by remember {
             mutableStateOf(AppPreference.getSearchIfGetFailed(context))
         }
@@ -233,7 +211,7 @@ class Settings : ComponentActivity() {
         )
         Spacer(modifier = Modifier.padding(4.dp))
         Text(
-            text = stringResource(R.string.settings_filter_caption),
+            text = stringResource(R.string.settings_filter_description),
             style = MaterialTheme.typography.bodyMedium,
             modifier = modifier
         )

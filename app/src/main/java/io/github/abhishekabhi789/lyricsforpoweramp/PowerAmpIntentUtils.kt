@@ -96,9 +96,9 @@ object PowerAmpIntentUtils {
     private fun makeInfoLine(context: Context, lyrics: Lyrics?): String {
         return buildString {
             if (!lyrics?.trackName.isNullOrEmpty()) {
-                appendLine("${context.getString(R.string.track_title)}: ${lyrics?.trackName}")
-                appendLine("${context.getString(R.string.artists)}: ${lyrics?.artistName}")
-                appendLine("${context.getString(R.string.album_name)}: ${lyrics?.albumName}")
+                appendLine("${context.getString(R.string.input_track_title_label)}: ${lyrics?.trackName}")
+                appendLine("${context.getString(R.string.input_track_artists_label)}: ${lyrics?.artistName}")
+                appendLine("${context.getString(R.string.input_track_album_label)}: ${lyrics?.albumName}")
                 appendLine()
             }
             appendLine(context.getString(R.string.response_footer_text))
