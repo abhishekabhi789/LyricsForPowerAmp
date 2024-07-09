@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -58,16 +59,25 @@ fun TextInputWithChips(
     var showClearWarningDialog: Boolean by remember { mutableStateOf(false) }
     var value by remember { mutableStateOf("") }
     val chipList by remember { mutableStateOf(initialValue ?: mutableListOf()) }
+    var isFocused by remember { mutableStateOf(false) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
             .defaultMinSize(TextFieldDefaults.MinWidth, TextFieldDefaults.MinHeight)
             .border(
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary),
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.let { if (isFocused) it.secondary else it.outline }),
                 shape = OutlinedTextFieldDefaults.shape
             )
-            .clickable { focusRequester.requestFocus() }
+            .clickable {
+                focusRequester.requestFocus()
+                isFocused = true
+            }
+            .onFocusChanged { state ->
+                isFocused = state.hasFocus
+            }
     ) {
         Icon(
             imageVector = leadingIcon,
