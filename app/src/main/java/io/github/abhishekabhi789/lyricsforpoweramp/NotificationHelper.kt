@@ -11,16 +11,19 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.maxmpz.poweramp.player.PowerampAPI
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
+import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
 import java.util.UUID
 
 class NotificationHelper(private val context: Context) {
+    private val isNotificationEnabled = AppPreference.getShowNotification(context)
     private val TAG = javaClass.simpleName
-    private var notificationId: Int = generateNotificationId()
+    private var notificationId: Int = generateNotificationId(context)
     private var channelName: String =
         context.getString(R.string.lyrics_request_handling_notifications)
 
     companion object {
         private const val CHANNEL_ID = "request_handling_notification"
+        private const val DEFAULT_NOTIFICATION_ID = 789
     }
 
     private val notificationManager: NotificationManager by lazy {
@@ -32,6 +35,7 @@ class NotificationHelper(private val context: Context) {
     }
 
     private fun createNotificationChannel() {
+        if (!isNotificationEnabled) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
@@ -48,6 +52,7 @@ class NotificationHelper(private val context: Context) {
         subText: String? = null,
         track: Track? = null
     ) {
+        if (!isNotificationEnabled) return
         Log.d(TAG, "makeNotification: $content")
         val pendingIntent = if (track != null) {
             val intent = Intent(context, MainActivity::class.java).apply {
@@ -80,11 +85,13 @@ class NotificationHelper(private val context: Context) {
     }
 
     fun cancelNotification() {
+        if (!isNotificationEnabled) return
         Log.d(TAG, "cancelNotification:")
         notificationManager.cancel(notificationId)
     }
 
-    private fun generateNotificationId(): Int {
-        return UUID.randomUUID().hashCode()
+    private fun generateNotificationId(context: Context): Int {
+        val overwriteNotification = AppPreference.getOverwriteNotification(context)
+        return if (overwriteNotification) DEFAULT_NOTIFICATION_ID else UUID.randomUUID().hashCode()
     }
 }

@@ -4,6 +4,13 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -198,6 +205,37 @@ class Settings : ComponentActivity() {
         ) {
             fallbackToSearch = it
             AppPreference.setSearchIfGetFailed(context, it)
+        }
+        var showNotification by remember { mutableStateOf(AppPreference.getShowNotification(context)) }
+        SwitchSettings(
+            label = stringResource(id = R.string.settings_show_lyrics_request_notification),
+            enabled = showNotification,
+            modifier = modifier
+        ) {
+            showNotification = it
+            AppPreference.setShowNotification(context, it)
+        }
+        var overwriteNotification by remember {
+            mutableStateOf(
+                AppPreference.getOverwriteNotification(
+                    context
+                )
+            )
+        }
+        AnimatedVisibility(
+            visible = showNotification,
+            enter = slideInVertically() +
+                    expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+            exit = slideOutVertically() + shrinkVertically() + fadeOut()
+        ) {
+            SwitchSettings(
+                label = stringResource(id = R.string.settings_overwrite_existing_lyrics_notification),
+                enabled = overwriteNotification,
+                modifier = modifier
+            ) {
+                overwriteNotification = it
+                AppPreference.setOverwriteNotification(context, it)
+            }
         }
     }
 

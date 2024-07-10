@@ -15,6 +15,9 @@ object AppPreference {
     private const val OTHER_PREF = "other_preference"
     private const val UI_THEME_KEY = "app_theme"
     private const val SEARCH_IF_GET_FAILED = "perform_search_if_get_failed"
+    private const val SHOW_LYRICS_REQUEST_NOTIFICATION = "lyrics_requests_show_notification"
+    private const val OVERWRITE_NOTIFICATION = "lyrics_requests_overwrite_existing_notification"
+
     private fun getSharedPreference(context: Context, prefName: String): SharedPreferences? {
         return context.getSharedPreferences(prefName, Context.MODE_PRIVATE)
     }
@@ -58,6 +61,25 @@ object AppPreference {
         sharedPreferences?.edit()?.putBoolean(SEARCH_IF_GET_FAILED, choice)?.apply()
     }
 
+    fun getShowNotification(context: Context): Boolean {
+        val sharedPreferences = getSharedPreference(context, OTHER_PREF)
+        return sharedPreferences?.getBoolean(SHOW_LYRICS_REQUEST_NOTIFICATION, true) ?: true
+    }
+
+    fun setShowNotification(context: Context, choice: Boolean) {
+        val sharedPreferences = getSharedPreference(context, OTHER_PREF)
+        sharedPreferences?.edit()?.putBoolean(SHOW_LYRICS_REQUEST_NOTIFICATION, choice)?.apply()
+    }
+
+    fun getOverwriteNotification(context: Context): Boolean {
+        val sharedPreferences = getSharedPreference(context, OTHER_PREF)
+        return sharedPreferences?.getBoolean(OVERWRITE_NOTIFICATION, false) ?: false
+    }
+
+    fun setOverwriteNotification(context: Context, choice: Boolean) {
+        val sharedPreferences = getSharedPreference(context, OTHER_PREF)
+        sharedPreferences?.edit()?.putBoolean(OVERWRITE_NOTIFICATION, choice)?.apply()
+    }
 
     @Composable
     fun isDarkTheme(theme: AppTheme): Boolean {
