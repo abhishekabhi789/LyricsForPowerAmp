@@ -38,7 +38,7 @@
     <string name="settings_theme_dark_label">Dark Theme</string>
     <string name="settings_general_label">Misc</string>
     <string name="settings_fallback_to_search_if_get_failed">Try with search if get method fails</string>
-    <string name="settings_show_lyrics_request_notification">Show Lyrics Request Notification</string>
+    <string name="settings_show_lyrics_request_notification">Show lyrics request notification</string>
     <string name="settings_overwrite_existing_lyrics_notification">Overwrite existing notification</string>
     <string name="settings_filter_label">Filters</string>
     <string name="settings_filter_description">These words will be removed from respective fields while processing.

@@ -58,11 +58,10 @@ class NotificationHelper(private val context: Context) {
             val intent = Intent(context, MainActivity::class.java).apply {
                 action = LyricsRequestReceiver.MANUAL_SEARCH_ACTION
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                putExtra(PowerampAPI.Track.REAL_ID, track.realId!!)
-                putExtra(PowerampAPI.Track.TITLE, track.trackName!!)
-                putExtra(PowerampAPI.Track.ARTIST, track.artistName!!)
-                putExtra(PowerampAPI.Track.ALBUM, track.albumName!!)
-                putExtra(PowerampAPI.Track.DURATION_MS, track.duration!! * 1000)
+                putExtra(PowerampAPI.Track.REAL_ID, track.realId)
+                putExtra(PowerampAPI.Track.TITLE, track.trackName)
+                putExtra(PowerampAPI.Track.ARTIST, track.artistName)
+                putExtra(PowerampAPI.Track.ALBUM, track.albumName)
             }
 
             PendingIntent.getActivity(
