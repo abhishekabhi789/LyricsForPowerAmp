@@ -28,9 +28,11 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -50,7 +52,7 @@ import io.github.abhishekabhi789.lyricsforpoweramp.R
 fun TextInputWithChips(
     fieldLabel: String,
     leadingIcon: ImageVector,
-    initialValue: MutableList<String>?,
+    initialValue: List<String>?,
     onInputChange: (List<String>) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -58,7 +60,9 @@ fun TextInputWithChips(
     val focusRequester = remember { FocusRequester() }
     var showClearWarningDialog: Boolean by remember { mutableStateOf(false) }
     var value by remember { mutableStateOf("") }
-    val chipList by remember { mutableStateOf(initialValue ?: mutableListOf()) }
+    val chipList: SnapshotStateList<String> = remember {
+        mutableStateListOf(*initialValue?.toTypedArray() ?: emptyArray())
+    }
     var isFocused by remember { mutableStateOf(false) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -90,7 +94,7 @@ fun TextInputWithChips(
             modifier = Modifier
                 .weight(1f)
         ) {
-            chipList.forEach { chipText ->
+            chipList.toList().forEach { chipText ->
                 AssistChip(
                     label = { Text(text = chipText) },
                     onClick = { value = chipText },

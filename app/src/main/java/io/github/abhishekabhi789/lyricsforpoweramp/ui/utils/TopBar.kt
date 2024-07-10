@@ -128,8 +128,8 @@ fun TopBar(scrollBehavior: TopAppBarScrollBehavior, modifier: Modifier = Modifie
 }
 
 private fun openTipPage(context: Context) {
-    val TIP_URL = "https://ko-fi.com/X8X1V9VTH"
-    openLink(context, TIP_URL)
+    val tipUrl = "https://ko-fi.com/X8X1V9VTH"
+    openLink(context, tipUrl)
 }
 
 const val GITHUB_REPO_URL = "https://github.com/abhishekabhi789/LyricsForPowerAmp"

@@ -18,7 +18,6 @@ import java.util.Collections.emptyList
 
 
 class LyricViewModel : ViewModel() {
-    private val TAG = javaClass.simpleName
     private val _inputState = MutableStateFlow(InputState())
 
     /** Carries inputs from PowerAmp or user, which is an instance of [InputState] */
@@ -92,5 +91,9 @@ class LyricViewModel : ViewModel() {
             realId = _inputState.value.queryTrack.realId!!,
             lyrics = lyrics
         )
+    }
+
+    companion object {
+        private const val TAG = "LyricViewModel"
     }
 }

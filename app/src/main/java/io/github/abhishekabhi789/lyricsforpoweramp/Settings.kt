@@ -52,6 +52,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -272,17 +273,17 @@ class Settings : ComponentActivity() {
     fun FilterField(
         context: Context, filter: FILTER, icon: ImageVector, modifier: Modifier = Modifier
     ) {
-        var filters by remember {
-            mutableStateOf(
-                AppPreference.getFilter(context, filter)?.lines()?.map { it.trim() }
-                    ?.toMutableStateList() ?: mutableStateListOf()
+        var filters: SnapshotStateList<String> = remember {
+            mutableStateListOf(
+                *AppPreference.getFilter(context, filter)?.lines()?.map { it.trim() }
+                    ?.toTypedArray() ?: emptyArray()
             )
         }
 
         TextInputWithChips(
             fieldLabel = stringResource(id = filter.label),
             leadingIcon = icon,
-            initialValue = filters,
+            initialValue = filters.toList(),
             onInputChange = {
                 filters = it.toMutableStateList()
                 AppPreference.setFilter(

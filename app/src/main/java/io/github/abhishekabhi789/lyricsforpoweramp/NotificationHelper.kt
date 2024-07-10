@@ -16,12 +16,12 @@ import java.util.UUID
 
 class NotificationHelper(private val context: Context) {
     private val isNotificationEnabled = AppPreference.getShowNotification(context)
-    private val TAG = javaClass.simpleName
     private var notificationId: Int = generateNotificationId(context)
     private var channelName: String =
         context.getString(R.string.lyrics_request_handling_notifications)
 
     companion object {
+        private const val TAG = "NotificationHelper"
         private const val CHANNEL_ID = "request_handling_notification"
         private const val DEFAULT_NOTIFICATION_ID = 789
     }

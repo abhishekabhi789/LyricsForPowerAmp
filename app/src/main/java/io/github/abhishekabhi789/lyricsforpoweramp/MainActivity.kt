@@ -58,7 +58,6 @@ const val CONTENT_ANIMATION_DURATION = 500
 enum class AppScreen { Search, List; }
 
 class MainActivity : ComponentActivity() {
-    private val TAG = javaClass.simpleName
     private val applicationContext: ComponentActivity = this
     private lateinit var density: Density
     private lateinit var viewModel: LyricViewModel
@@ -260,5 +259,9 @@ class MainActivity : ComponentActivity() {
                 LyricChooserApp()
             }
         }
+    }
+
+    companion object {
+        private const val TAG = "MainActivity"
     }
 }

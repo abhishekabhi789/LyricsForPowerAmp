@@ -1,6 +1,7 @@
 package io.github.abhishekabhi789.lyricsforpoweramp.model
 
 import com.google.gson.annotations.SerializedName
+import java.util.Locale
 
 /**This data class represents each item from the API response.
  * @see <a href="https://lrclib.net/docs#:~:text=Soundtrack)%26duration%3D233-,Example%20response,-200%20OK%3A">LRCLIB#Example response</a>*/
@@ -18,7 +19,7 @@ data class Lyrics(
         val seconds = duration % 60
         val formatted = buildString {
             if (hours > 0) append("$hours:")
-            append(String.format("%02d:%02d", minutes, seconds))
+            append(String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds))
         }
         return formatted
     }

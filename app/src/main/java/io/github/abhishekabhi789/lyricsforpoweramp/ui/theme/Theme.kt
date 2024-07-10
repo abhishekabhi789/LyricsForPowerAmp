@@ -79,7 +79,7 @@ private val DarkColors = darkColorScheme(
 @Composable
 fun LyricsForPowerAmpTheme(
     useDarkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable() () -> Unit
+    content: @Composable () -> Unit
 ) {
 
     val colorScheme = when {

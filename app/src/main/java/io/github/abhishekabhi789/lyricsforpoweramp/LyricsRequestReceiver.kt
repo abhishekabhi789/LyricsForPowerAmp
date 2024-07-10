@@ -16,7 +16,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.properties.Delegates
 
 class LyricsRequestReceiver : BroadcastReceiver() {
-    private val TAG = javaClass.simpleName
     private var realId by Delegates.notNull<Long>()
     private lateinit var context: Context
     private var track: Track? = null
@@ -120,6 +119,7 @@ class LyricsRequestReceiver : BroadcastReceiver() {
     }
 
     companion object {
+        private const val TAG = "LyricsRequestReceiver"
         const val MANUAL_SEARCH_ACTION =
             "io.github.abhishekabhi789.lyricsforpoweramp.MANUAL_SEARCH_ACTION"
     }
