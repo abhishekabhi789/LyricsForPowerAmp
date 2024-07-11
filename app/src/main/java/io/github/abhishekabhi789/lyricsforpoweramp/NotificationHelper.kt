@@ -65,8 +65,8 @@ class NotificationHelper(private val context: Context) {
             }
 
             PendingIntent.getActivity(
-                context, 0, intent,
-                PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                context, notificationId, intent,
+                PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_ONE_SHOT
             )
         } else null
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
