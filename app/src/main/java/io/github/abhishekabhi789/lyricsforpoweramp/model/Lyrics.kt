@@ -13,6 +13,7 @@ data class Lyrics(
     @SerializedName("syncedLyrics") val syncedLyrics: String?,
     @SerializedName("duration") val duration: Double
 ) {
+    /** [duration] in readable format. */
     fun getFormattedDuration(): String {
         val hours = (duration / 3600).toInt()
         val minutes = ((duration % 3600) / 60).toInt()

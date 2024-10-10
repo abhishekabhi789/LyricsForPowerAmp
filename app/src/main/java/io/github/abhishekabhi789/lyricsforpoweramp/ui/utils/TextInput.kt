@@ -1,25 +1,24 @@
 package io.github.abhishekabhi789.lyricsforpoweramp.ui.utils
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Clear
-import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.Warning
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -30,15 +29,21 @@ import io.github.abhishekabhi789.lyricsforpoweramp.R
 
 @Composable
 fun TextInput(
+    modifier: Modifier = Modifier,
     label: String,
     icon: ImageVector,
     text: String?,
-    isError: Boolean,
-    modifier: Modifier = Modifier,
+    isInputValid: Boolean = true,
     imeAction: ImeAction = ImeAction.Done,
     clearWithoutWarn: Boolean = true,
     onValueChange: (String) -> Unit
 ) {
+    var isFocused by remember { mutableStateOf(false) }
+    val sizeScale by animateFloatAsState(
+        if (isFocused) 1.025f else 1f,
+        label = "searchButtonAnimation"
+    )
+    val color = MaterialTheme.colorScheme.let { if (isFocused) it.primary else it.secondary }
     var showClearWarningDialog: Boolean by remember { mutableStateOf(false) }
     OutlinedTextField(
         value = text ?: "",
@@ -49,72 +54,49 @@ fun TextInput(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.let {
+                    if (isInputValid) color else it.error
+                }
             )
         },
         trailingIcon = {
             if (text?.isNotEmpty() == true) {
                 Icon(imageVector = Icons.Outlined.Clear,
                     contentDescription = stringResource(R.string.clear_input),
+                    tint = color,
                     modifier = Modifier.clickable {
                         if (clearWithoutWarn) onValueChange("")
                         else showClearWarningDialog = true
-                    })
-            } else if (isError) {
-                Icon(
-                    imageVector = Icons.Outlined.ErrorOutline,
-                    contentDescription = stringResource(R.string.error),
-                    tint = MaterialTheme.colorScheme.error
+                    }
                 )
             }
         },
         supportingText = {
-            if (isError) {
+            if (!isInputValid) {
                 Text(
                     text = stringResource(R.string.invalid_input_error),
                     color = MaterialTheme.colorScheme.error
                 )
             }
         },
-        isError = isError,
+        isError = !isInputValid,
         keyboardOptions = KeyboardOptions.Default.copy(
             keyboardType = KeyboardType.Text,
             imeAction = imeAction,
             capitalization = KeyboardCapitalization.Words
         ),
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .scale(sizeScale)
+            .fillMaxWidth()
+            .onFocusChanged { state -> isFocused = state.isFocused }
     )
     if (showClearWarningDialog) {
-        ShowFieldClearWarning(
+        FieldClearWarning(
             fieldLabel = label,
             onConfirm = { onValueChange("") },
             onDismiss = { showClearWarningDialog = false }
         )
     }
-}
-
-@Composable
-fun ShowFieldClearWarning(
-    fieldLabel: String,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        icon = { Icon(imageVector = Icons.Outlined.Warning, contentDescription = null) },
-        title = { Text(stringResource(id = R.string.clear_field_title)) },
-        text = { Text(stringResource(R.string.input_clear_confirmation_message, fieldLabel)) },
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(onClick = { onConfirm(); onDismiss() }) {
-                Text(stringResource(R.string.yes))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.no))
-            }
-        },
-    )
 }
 
 @Preview(showBackground = true)
@@ -124,6 +106,6 @@ fun PreviewTextInput() {
         label = "Enter an input",
         icon = Icons.Outlined.BugReport,
         text = "Lorem Ipsum",
-        isError = false,
+        isInputValid = false,
         onValueChange = {})
 }

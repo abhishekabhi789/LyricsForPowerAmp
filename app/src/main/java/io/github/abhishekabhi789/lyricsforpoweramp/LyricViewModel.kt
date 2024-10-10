@@ -18,6 +18,7 @@ import java.util.Collections.emptyList
 
 
 class LyricViewModel : ViewModel() {
+
     private val _inputState = MutableStateFlow(InputState())
 
     /** Carries inputs from PowerAmp or user, which is an instance of [InputState] */
@@ -36,6 +37,16 @@ class LyricViewModel : ViewModel() {
     /** Current App theme */
     val appTheme = _appTheme.asStateFlow()
 
+    private var _isSearching = MutableStateFlow(false)
+
+    /** Status about search */
+    val isSearching = _isSearching.asStateFlow()
+
+    private var _isInputValid = MutableStateFlow(true)
+
+    /** Stores if input is valid for a search operation */
+    val isInputValid = _isInputValid.asStateFlow()
+
     /** Updates app theme */
     fun updateTheme(theme: AppPreference.AppTheme) {
         _appTheme.update { theme }
@@ -46,8 +57,8 @@ class LyricViewModel : ViewModel() {
         _inputState.update { newState }
     }
 
-    /** Ensures user inputs are suffice to perform search*/
-    fun isValidInput(): Boolean {
+    /** Ensures user inputs are suffice to perform search */
+    private fun isValidInput(): Boolean {
         return when (_inputState.value.searchMode) {
             InputState.SearchMode.Coarse -> _inputState.value.queryString.isNotEmpty()
             InputState.SearchMode.Fine -> !inputState.value.queryTrack.trackName.isNullOrEmpty()
@@ -61,7 +72,14 @@ class LyricViewModel : ViewModel() {
     }
 
     /**Performs search for the [inputState]*/
-    fun performSearch(onSearchSuccess: () -> Unit, onSearchFail: (String) -> Unit) {
+    fun performSearch(onSearchSuccess: () -> Unit, onSearchFail: (errorMsg: String) -> Unit) {
+        val isInputValid = isValidInput()
+        if (!isInputValid) {
+            Log.e(TAG, "performSearch: can't search with invalid input ${_inputState.value}")
+            updateInputValidStatus(false)
+            return
+        }
+        updateSearchStatus(true)
         _searchResults.update { emptyList() }
         searchJob?.cancel()
         val searchQuery: Any = when (_inputState.value.searchMode) {
@@ -70,9 +88,9 @@ class LyricViewModel : ViewModel() {
         }
         searchJob = viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                LyricsApiHelper.searchLyricsForTrack(searchQuery, onResult = { list ->
-                    _searchResults.update { list }
-                }, onError = { error -> onSearchFail(error) })
+                LrclibApiHelper.searchLyricsForTrack(searchQuery,
+                    onResult = { list -> _searchResults.update { list } },
+                    onError = { error -> onSearchFail(error) })
             }
             if (searchJob?.isCancelled == true) {
                 onSearchFail("Cancelled")
@@ -81,6 +99,23 @@ class LyricViewModel : ViewModel() {
                 onSearchSuccess()
             }
         }
+        searchJob?.invokeOnCompletion {
+            updateSearchStatus(false)
+            Log.d(TAG, "performSearch: search job completed")
+        }
+    }
+
+    private fun updateSearchStatus(isSearching: Boolean) {
+        _isSearching.update { isSearching }
+    }
+
+    private fun updateInputValidStatus(isInputValid: Boolean) {
+        _isInputValid.update { isInputValid }
+    }
+
+    /** Call this when after updating the mandatory fields to clear the error*/
+    fun clearInvalidInputError() {
+        updateInputValidStatus(true)
     }
 
     /** Will send the chosen lyrics to PowerAmp. Should call when have realId

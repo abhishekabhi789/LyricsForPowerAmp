@@ -30,13 +30,12 @@ object PowerAmpIntentUtils {
             Log.e(
                 TAG,
                 buildString {
-                    append("onReceive: Failed to receive details.")
+                    append("makeTrack: Failed to parse details.")
                     append(" | realId: $realId")
                     append(" | title: $title")
                 },
             )
         }
-        Log.i(TAG, "onReceive: request received for $title")
         val album = intent.getStringExtra(PowerampAPI.Track.ALBUM)
         val artist = intent.getStringExtra(PowerampAPI.Track.ARTIST)
         val durationMs = intent.getIntExtra(PowerampAPI.Track.DURATION_MS, 0)

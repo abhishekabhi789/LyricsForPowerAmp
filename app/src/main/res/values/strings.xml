@@ -11,7 +11,7 @@
     <string name="navigate_back_action">Go Back</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string name="response_footer_text">Lyrics powered by Lyrics for PowerAmp</string>
+    <string name="response_footer_text">Powered by Lyrics for PowerAmp</string>
     <!--    top bar-->
     <string name="top_bar_menu_descriptions">More Options</string>
     <string name="top_bar_github_repo">Visit Github Repo</string>
@@ -32,30 +32,32 @@
     <!--    settings-->
     <string name="top_bar_settings">Settings</string>
     <string name="settings_app_theme_label">Theme</string>
-    <string name="settings_app_theme_description">Choose app theme</string>
+    <string name="settings_app_theme_description">App Theme</string>
     <string name="settings_theme_auto_label">System Default</string>
     <string name="settings_theme_light_label">Light Theme</string>
     <string name="settings_theme_dark_label">Dark Theme</string>
-    <string name="settings_general_label">Misc</string>
-    <string name="settings_fallback_to_search_if_get_failed">Try with search if get method fails</string>
-    <string name="settings_show_lyrics_request_notification">Show lyrics request notification</string>
-    <string name="settings_overwrite_existing_lyrics_notification">Overwrite existing notification</string>
+    <string name="settings_lyrics_request_label">Lyrics Requests</string>
+    <string name="settings_fallback_to_search_label">Fallback to Broader Search</string>
+    <string name="settings_fallback_to_search_description">If the exact lyrics can\'t be retrieved, a broader search will be performed.\nNote: This may occasionally return incorrect lyrics.</string>
+    <string name="settings_request_fail_notification_label">Notify on Lyrics Request Failure</string>
+    <string name="settings_request_fail_notification_description">Get notified when lyrics retrieval fails. Allows manual search.</string>
+    <string name="settings_overwrite_existing_notification_label">Replace Previous Notification</string>
+    <string name="settings_overwrite_existing_notification_description">A new notification will replace the previous one.</string>
     <string name="settings_filter_label">Filters</string>
-    <string name="settings_filter_description">These words will be removed from respective fields while processing.
-        Case insensitive. Supports regex.</string>
+    <string name="settings_filter_description">These words will be removed from respective fields while processing. Case insensitive. Supports regex.</string>
     <string name="settings_filter_title_label">Title Filter</string>
     <string name="settings_filter_artists_label">Artists Filter</string>
     <string name="settings_filter_album_label">Album Filter</string>
-    <string name="clear_field_title">Clear Field?</string>
-    <string name="input_clear_confirmation_message">Are your sure to clear the %1$s</string>
+    <string name="clear_field_title">Clear this field?</string>
+    <string name="input_clear_confirmation_message">Are you sure you want to clear the %1$s</string>
     <!--    notifications-->
     <string name="lyrics_request_handling_notifications">Lyrics Request Handling Notifications</string>
     <string name="preparing_search_track">Preparing search track</string>
     <string name="making_network_requests">Making network requests</string>
     <string name="timeout_cancelled">Timeout cancelled</string>
-    <string name="notification_get_failed_and_trying_search">failed to get, trying search method</string>
+    <string name="notification_get_failed_trying_search">Trying to perform search method</string>
     <string name="sent">sent</string>
-    <string name="could_not_sent">couldn\'t sent</string>
+    <string name="failed_to_send">Failed to send</string>
     <string name="notification_manual_search_suggestion">Tap here to manually search</string>
     <string name="request_handling_notification_title">Handling Request for</string>
 </resources>

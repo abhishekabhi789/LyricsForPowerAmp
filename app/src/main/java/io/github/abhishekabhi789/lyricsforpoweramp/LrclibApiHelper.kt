@@ -17,7 +17,7 @@ import java.net.URL
 import java.net.URLEncoder
 
 /**Helper to interacts with LRCLIB*/
-object LyricsApiHelper {
+object LrclibApiHelper {
     private val TAG = javaClass.simpleName
     private const val API_BASE_URL = "https://lrclib.net/api/"
     private const val CONNECTION_TIMEOUT = 5000
@@ -36,11 +36,23 @@ object LyricsApiHelper {
                 connection.connectTimeout = CONNECTION_TIMEOUT
                 connection.readTimeout = READ_TIMEOUT
                 connection.requestMethod = "GET"
-                connection.setRequestProperty(
-                    "User-Agent",
-                    "${BuildConfig.APPLICATION_ID}-${BuildConfig.BUILD_TYPE} ${BuildConfig.VERSION_NAME} $GITHUB_REPO_URL"
-                )
-                connection.setRequestProperty("Content-Type", "application/json")
+                try {
+                    connection.setRequestProperty(
+                        "User-Agent",
+                        buildString {
+                            append(BuildConfig.APPLICATION_ID)
+                            append("-")
+                            append(BuildConfig.BUILD_TYPE)
+                            append(" ")
+                            append(BuildConfig.VERSION_NAME)
+                            append(" ")
+                            append(GITHUB_REPO_URL)
+                        }
+                    )
+                    connection.setRequestProperty("Content-Type", "application/json")
+                } catch (e: IllegalStateException) {
+                    Log.e(TAG, "makeApiRequest: already connected", e)
+                }
                 val responseCode = connection.responseCode
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     val reader = BufferedReader(InputStreamReader(connection.inputStream))
@@ -54,7 +66,7 @@ object LyricsApiHelper {
                 } else {
                     Log.e(
                         TAG,
-                        "makeGetRequest: Network Request Failed, $responseCode ${connection.responseMessage}"
+                        "makeApiRequest: Network Request Failed, $responseCode ${connection.responseMessage}"
                     )
                     onFail("Request Failed, HTTP $responseCode: ${connection.responseMessage} ")
                 }
@@ -148,8 +160,6 @@ object LyricsApiHelper {
         return results?.filter { it.plainLyrics != null || it.syncedLyrics != null }?.toList()
     }
 
+    private fun encode(text: String) = URLEncoder.encode(text, "UTF-8")
 
-    private fun encode(text: String): String {
-        return URLEncoder.encode(text, "UTF-8")
-    }
 }

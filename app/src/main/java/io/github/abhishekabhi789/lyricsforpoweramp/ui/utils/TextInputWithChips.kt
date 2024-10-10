@@ -1,5 +1,6 @@
 package  io.github.abhishekabhi789.lyricsforpoweramp.ui.utils
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -64,39 +66,42 @@ fun TextInputWithChips(
         mutableStateListOf(*initialValue?.toTypedArray() ?: emptyArray())
     }
     var isFocused by remember { mutableStateOf(false) }
+    val sizeScale by animateFloatAsState(
+        if (isFocused) 1.025f else 1f,
+        label = "searchButtonAnimation"
+    )
+    val color = MaterialTheme.colorScheme.let { if (isFocused) it.primary else it.outline }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
+            .scale(sizeScale)
             .defaultMinSize(TextFieldDefaults.MinWidth, TextFieldDefaults.MinHeight)
-            .border(
-                border = BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.let { if (isFocused) it.secondary else it.outline }),
-                shape = OutlinedTextFieldDefaults.shape
-            )
-            .clickable {
-                focusRequester.requestFocus()
-                isFocused = true
-            }
-            .onFocusChanged { state ->
-                isFocused = state.hasFocus
-            }
+            .border(border = BorderStroke(1.dp, color), shape = OutlinedTextFieldDefaults.shape)
+            .clickable { focusRequester.requestFocus() }
+            .onFocusChanged { state -> isFocused = state.hasFocus }
     ) {
         Icon(
             imageVector = leadingIcon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.secondary,
+            tint = color,
             modifier = Modifier.padding(start = 12.dp)
         )
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .weight(1f)
+                .padding(start = 8.dp)
         ) {
             chipList.toList().forEach { chipText ->
                 AssistChip(
-                    label = { Text(text = chipText) },
+                    label = {
+                        Text(
+                            text = chipText,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    },
                     onClick = { value = chipText },
                     trailingIcon = {
                         IconButton(
@@ -110,7 +115,11 @@ fun TextInputWithChips(
                         }
                     },
                     colors = AssistChipDefaults.assistChipColors()
-                        .copy(labelColor = MaterialTheme.colorScheme.secondary)
+                        .copy(
+                            labelColor = MaterialTheme.colorScheme.secondary,
+                            trailingIconContentColor = color,
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        )
                 )
             }
             TextField(
@@ -125,7 +134,7 @@ fun TextInputWithChips(
                     } else keyboardController?.hide()
                 }),
                 singleLine = true,
-                placeholder = { Text(text = fieldLabel) },
+                label = { Text(text = fieldLabel) },
                 colors = TextFieldDefaults.colors()
                     .copy(
                         unfocusedContainerColor = Color.Transparent,
@@ -149,13 +158,14 @@ fun TextInputWithChips(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = stringResource(id = R.string.clear_input),
+                    tint = color
                 )
             }
         }
 
     }
     if (showClearWarningDialog) {
-        ShowFieldClearWarning(
+        FieldClearWarning(
             fieldLabel = fieldLabel,
             onConfirm = {
                 chipList.clear()
@@ -164,7 +174,6 @@ fun TextInputWithChips(
             onDismiss = { showClearWarningDialog = false }
         )
     }
-
 }
 
 @Preview(showSystemUi = true)

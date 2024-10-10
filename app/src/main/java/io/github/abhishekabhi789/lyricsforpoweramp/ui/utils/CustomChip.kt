@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 
 @Composable
-fun MakeChip(
+fun CustomChip(
     label: String,
     selected: Boolean,
     icon: Any?,
@@ -44,12 +44,12 @@ fun MakeChip(
         },
         colors = MaterialTheme.colorScheme.let { cs ->
             FilterChipDefaults.filterChipColors(
-                containerColor = cs.secondaryContainer,
+                containerColor = cs.surfaceContainer,
+                labelColor = cs.onSurface,
+                iconColor = cs.onSurface,
                 selectedContainerColor = cs.primaryContainer,
-//                labelColor = cs.onSecondary,
-//                selectedLabelColor = cs.onPrimary,
-//                iconColor = cs.onSecondaryContainer,
-//                disabledLeadingIconColor = cs.onPrimaryContainer
+                selectedLabelColor = cs.onPrimaryContainer,
+                selectedLeadingIconColor = cs.onPrimaryContainer
             )
         },
         selected = selected,
@@ -61,13 +61,13 @@ fun MakeChip(
 @Composable
 fun PreviewChip() {
     Row {
-        MakeChip(
+        CustomChip(
             label = stringResource(R.string.plain_lyrics),
             selected = true,
             icon = R.drawable.ic_plain_lyrics,
             onClick = {}
         )
-        MakeChip(
+        CustomChip(
             label = stringResource(R.string.synced_lyrics),
             selected = false,
             icon = R.drawable.ic_synced_lyrics,
