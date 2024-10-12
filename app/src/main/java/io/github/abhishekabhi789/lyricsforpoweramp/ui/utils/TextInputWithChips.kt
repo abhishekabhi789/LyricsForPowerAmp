@@ -131,7 +131,11 @@ fun TextInputWithChips(
                         chipList.add(value)
                         onInputChange(chipList)
                         value = ""
-                    } else keyboardController?.hide()
+                    } else {
+                        keyboardController?.hide()
+                        focusRequester.freeFocus()
+                        isFocused = false
+                    }
                 }),
                 singleLine = true,
                 label = { Text(text = fieldLabel) },

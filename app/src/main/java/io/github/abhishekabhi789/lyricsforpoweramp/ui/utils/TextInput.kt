@@ -3,6 +3,7 @@ package io.github.abhishekabhi789.lyricsforpoweramp.ui.utils
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BugReport
@@ -36,7 +37,8 @@ fun TextInput(
     isInputValid: Boolean = true,
     imeAction: ImeAction = ImeAction.Done,
     clearWithoutWarn: Boolean = true,
-    onValueChange: (String) -> Unit
+    onValueChange: (String) -> Unit,
+    onDone: () -> Unit
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val sizeScale by animateFloatAsState(
@@ -85,6 +87,7 @@ fun TextInput(
             imeAction = imeAction,
             capitalization = KeyboardCapitalization.Words
         ),
+        keyboardActions = KeyboardActions(onDone = { onDone() }),
         modifier = modifier
             .scale(sizeScale)
             .fillMaxWidth()
@@ -107,5 +110,6 @@ fun PreviewTextInput() {
         icon = Icons.Outlined.BugReport,
         text = "Lorem Ipsum",
         isInputValid = false,
-        onValueChange = {})
+        onValueChange = {},
+        onDone = {})
 }

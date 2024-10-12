@@ -172,11 +172,12 @@ fun SearchUi(
                                 icon = Icons.Outlined.Edit,
                                 text = inputState.queryString,
                                 isInputValid = isInputValid,
-                                modifier = Modifier.focusRequester(focusRequester)
-                            ) {
-                                if (!isInputValid) viewModel.clearInvalidInputError()
-                                viewModel.updateInputState(inputState.copy(queryString = it))
-                            }
+                                modifier = Modifier.focusRequester(focusRequester),
+                                onDone = { focusManager.clearFocus() },
+                                onValueChange = {
+                                    if (!isInputValid) viewModel.clearInvalidInputError()
+                                    viewModel.updateInputState(inputState.copy(queryString = it))
+                                })
                             Spacer(modifier = Modifier
                                 .padding(vertical = 16.dp)
                                 .onGloballyPositioned {
@@ -192,37 +193,40 @@ fun SearchUi(
                                     icon = Icons.Outlined.MusicNote,
                                     text = inputState.queryTrack.trackName,
                                     isInputValid = isInputValid,
-                                    modifier = Modifier.focusRequester(focusRequester)
-                                ) {
-                                    if (!isInputValid) viewModel.clearInvalidInputError()
-                                    viewModel.updateInputState(
-                                        inputState.copy(
-                                            queryTrack = inputState.queryTrack.copy(trackName = it)
+                                    modifier = Modifier.focusRequester(focusRequester),
+                                    onDone = { focusManager.clearFocus() },
+                                    onValueChange = {
+                                        if (!isInputValid) viewModel.clearInvalidInputError()
+                                        viewModel.updateInputState(
+                                            inputState.copy(
+                                                queryTrack = inputState.queryTrack.copy(trackName = it)
+                                            )
                                         )
-                                    )
-                                }
+                                    })
                                 TextInput(
                                     label = stringResource(R.string.input_track_artists_label),
                                     icon = Icons.Outlined.InterpreterMode,
                                     text = inputState.queryTrack.artistName,
-                                ) {
-                                    viewModel.updateInputState(
-                                        inputState.copy(
-                                            queryTrack = inputState.queryTrack.copy(artistName = it)
+                                    onDone = { focusManager.clearFocus() },
+                                    onValueChange = {
+                                        viewModel.updateInputState(
+                                            inputState.copy(
+                                                queryTrack = inputState.queryTrack.copy(artistName = it)
+                                            )
                                         )
-                                    )
-                                }
+                                    })
                                 TextInput(
                                     label = stringResource(R.string.input_track_album_label),
                                     icon = Icons.Outlined.Album,
                                     text = inputState.queryTrack.albumName,
-                                ) {
-                                    viewModel.updateInputState(
-                                        inputState.copy(
-                                            queryTrack = inputState.queryTrack.copy(albumName = it)
+                                    onDone = { focusManager.clearFocus() },
+                                    onValueChange = {
+                                        viewModel.updateInputState(
+                                            inputState.copy(
+                                                queryTrack = inputState.queryTrack.copy(albumName = it)
+                                            )
                                         )
-                                    )
-                                }
+                                    })
                             }
                             Spacer(
                                 modifier = Modifier
