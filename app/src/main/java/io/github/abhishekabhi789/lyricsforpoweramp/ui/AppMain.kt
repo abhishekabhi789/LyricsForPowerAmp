@@ -118,6 +118,10 @@ fun AppMain(
                     )
                 }
             ) {
+                LaunchedEffect(Unit) {
+                    scrollBehavior.state.contentOffset = 0f
+                    scrollBehavior.state.heightOffset = 0f
+                }
                 SearchUi(viewModel = viewModel) { message ->
                     if (message.isNullOrEmpty())
                         navController.navigate(AppScreen.List.name) else {
