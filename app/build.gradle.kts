@@ -57,6 +57,7 @@ android {
 
 dependencies {
     implementation(project(":poweramp_api_lib"))
+    implementation(libs.accompanist.permissions)
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.gson)
@@ -75,5 +76,4 @@ dependencies {
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
-
 }

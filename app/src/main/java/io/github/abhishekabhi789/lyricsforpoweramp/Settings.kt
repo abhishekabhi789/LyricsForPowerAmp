@@ -1,9 +1,16 @@
 package io.github.abhishekabhi789.lyricsforpoweramp
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -37,6 +44,7 @@ import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.InterpreterMode
 import androidx.compose.material.icons.filled.Lyrics
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -46,6 +54,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -53,16 +62,19 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -73,7 +85,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.theme.LyricsForPowerAmpTheme
+import io.github.abhishekabhi789.lyricsforpoweramp.ui.utils.PermissionDialog
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.utils.TextInputWithChips
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference.FILTER
@@ -82,6 +99,7 @@ import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference.FILTER
 class Settings : ComponentActivity() {
     private lateinit var viewModel: LyricViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
             viewModel = viewModel()
@@ -164,22 +182,14 @@ class Settings : ComponentActivity() {
             val context = LocalContext.current
             var expanded by remember { mutableStateOf(false) }
             var currentTheme by remember { mutableStateOf(AppPreference.getTheme(context)) }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = modifier.padding(vertical = 8.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.settings_app_theme_description),
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.weight(1f)
-                )
+            BasicSettings(label = stringResource(R.string.settings_app_theme_description)) {
                 ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
                     Row(
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .wrapContentWidth()
-                            .menuAnchor()
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                     ) {
                         Text(
                             text = stringResource(id = currentTheme.label),
@@ -216,6 +226,8 @@ class Settings : ComponentActivity() {
         }
     }
 
+    @SuppressLint("InlinedApi", "PermissionLaunchedDuringComposition")
+    @OptIn(ExperimentalPermissionsApi::class)
     @Composable
     fun LyricsRequestSettings(modifier: Modifier = Modifier) {
         SettingsGroup(
@@ -224,33 +236,100 @@ class Settings : ComponentActivity() {
             icon = Icons.Default.Lyrics
         ) {
             val context = LocalContext.current
-
+            var hasNotificationPermission by rememberSaveable { mutableStateOf(false) }
+            var askPermission by rememberSaveable { mutableStateOf(false) }
+            var showPermissionDialog by rememberSaveable { mutableStateOf(false) }
+            val permissionState = rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
+            hasNotificationPermission = when (permissionState.status) {
+                PermissionStatus.Granted -> true
+                is PermissionStatus.Denied -> false
+            }
+            LaunchedEffect(askPermission) {
+                if (askPermission) {
+                    if (permissionState.status.shouldShowRationale) {
+                        showPermissionDialog = true
+                    } else {
+                        permissionState.launchPermissionRequest()
+                    }
+                    askPermission = false // resetting
+                }
+            }
+            if (showPermissionDialog) {
+                PermissionDialog(
+                    onConfirm = {
+                        askPermission = false
+                        showPermissionDialog = false
+                        val intent =
+                            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                            }
+                        startActivity(intent)
+                    },
+                    onDismiss = {
+                        askPermission = false
+                        showPermissionDialog = false
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.settings_permission_toast_denied),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                )
+            }
             var fallbackToSearch by remember {
                 mutableStateOf(AppPreference.getSearchIfGetFailed(context))
             }
-            SwitchSettings(
+            BasicSettings(
                 label = stringResource(id = R.string.settings_fallback_to_search_label),
                 description = stringResource(id = R.string.settings_fallback_to_search_description),
-                enabled = fallbackToSearch,
                 modifier = Modifier
             ) {
-                fallbackToSearch = it
-                AppPreference.setSearchIfGetFailed(context, it)
+                Switch(
+                    checked = fallbackToSearch,
+                    onCheckedChange = {
+                        fallbackToSearch = it
+                        AppPreference.setSearchIfGetFailed(context, it)
+                    },
+                    modifier = Modifier.padding(start = 4.dp)
+                )
             }
-
             var showNotification by remember {
                 mutableStateOf(AppPreference.getShowNotification(context))
             }
-            SwitchSettings(
+            BasicSettings(
                 label = stringResource(id = R.string.settings_request_fail_notification_label),
                 description = stringResource(id = R.string.settings_request_fail_notification_description),
-                enabled = showNotification,
                 modifier = Modifier
             ) {
-                showNotification = it
-                AppPreference.setShowNotification(context, it)
+                Switch(
+                    checked = showNotification,
+                    onCheckedChange = {
+                        showNotification = it
+                        AppPreference.setShowNotification(context, it)
+                    },
+                    modifier = Modifier.padding(start = 4.dp)
+                )
             }
-
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                AnimatedVisibility(
+                    visible = showNotification && !hasNotificationPermission,
+                    enter = slideInVertically() + expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+                    exit = slideOutVertically() + shrinkVertically() + fadeOut()
+                ) {
+                    BasicSettings(
+                        label = stringResource(R.string.settings_notification_permission_label),
+                        description = stringResource(R.string.settings_notification_permission_description)
+                    ) {
+                        Button(
+                            onClick = { askPermission = true },
+                            enabled = !hasNotificationPermission
+                        ) {
+                            Text(stringResource(R.string.settings_permission_button_grant))
+                        }
+                    }
+                }
+            }
             var overwriteNotification by remember {
                 mutableStateOf(AppPreference.getOverwriteNotification(context))
             }
@@ -259,14 +338,20 @@ class Settings : ComponentActivity() {
                 enter = slideInVertically() + expandVertically(expandFrom = Alignment.Top) + fadeIn(),
                 exit = slideOutVertically() + shrinkVertically() + fadeOut()
             ) {
-                SwitchSettings(
+                BasicSettings(
                     label = stringResource(id = R.string.settings_overwrite_existing_notification_label),
                     description = stringResource(id = R.string.settings_overwrite_existing_notification_description),
-                    enabled = overwriteNotification,
-                    modifier = Modifier
+                    modifier = Modifier.alpha(if (hasNotificationPermission) 1.0f else 0.7f)
                 ) {
-                    overwriteNotification = it
-                    AppPreference.setOverwriteNotification(context, it)
+                    Switch(
+                        checked = overwriteNotification,
+                        enabled = hasNotificationPermission,
+                        onCheckedChange = {
+                            overwriteNotification = it
+                            AppPreference.setOverwriteNotification(context, it)
+                        },
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
                 }
             }
         }
@@ -286,7 +371,6 @@ class Settings : ComponentActivity() {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            Spacer(modifier = Modifier.padding(8.dp))
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
             ) {
@@ -305,6 +389,7 @@ class Settings : ComponentActivity() {
         content: @Composable (ColumnScope.() -> Unit)
     ) {
         Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
@@ -326,6 +411,38 @@ class Settings : ComponentActivity() {
             }
             HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
             content.invoke(this)
+        }
+    }
+
+    @Composable
+    fun BasicSettings(
+        modifier: Modifier = Modifier,
+        label: String,
+        description: String? = null,
+        control: @Composable (() -> Unit)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = modifier
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                description?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            control.invoke()
         }
     }
 
@@ -354,42 +471,5 @@ class Settings : ComponentActivity() {
             },
             modifier = modifier
         )
-    }
-
-    @Composable
-    fun SwitchSettings(
-        modifier: Modifier = Modifier,
-        label: String,
-        description: String? = null,
-        enabled: Boolean,
-        onChange: (Boolean) -> Unit
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = modifier.padding(vertical = 4.dp)
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                description?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            Switch(
-                checked = enabled,
-                onCheckedChange = onChange,
-                modifier = Modifier.padding(start = 4.dp)
-            )
-        }
     }
 }

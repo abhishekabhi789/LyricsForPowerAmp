@@ -39,6 +39,14 @@
     <string name="settings_lyrics_request_label">Lyrics Requests</string>
     <string name="settings_fallback_to_search_label">Fallback to Broader Search</string>
     <string name="settings_fallback_to_search_description">If the exact lyrics can\'t be retrieved, a broader search will be performed.\nNote: This may occasionally return incorrect lyrics.</string>
+    <string name="settings_notification_permission_label">Notification Permission</string>
+    <string name="settings_notification_permission_description">Permission is required to post notifications about lyrics request status.</string>
+    <string name="settings_permission_button_grant">Grant</string>
+    <string name="settings_permission_dialog_title">Permission Required</string>
+    <string name="settings_permission_dialog_ask">Grant</string>
+    <string name="settings_permission_dialog_deny">Deny</string>
+    <string name="settings_permission_dialog_disable_notification">Disable Notifications</string>
+    <string name="settings_permission_toast_denied">Notifications disabled</string>
     <string name="settings_request_fail_notification_label">Notify on Lyrics Request Failure</string>
     <string name="settings_request_fail_notification_description">Get notified when lyrics retrieval fails. Allows manual search.</string>
     <string name="settings_overwrite_existing_notification_label">Replace Previous Notification</string>
