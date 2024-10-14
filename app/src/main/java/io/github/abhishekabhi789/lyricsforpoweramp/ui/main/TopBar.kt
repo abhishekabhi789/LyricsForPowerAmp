@@ -1,4 +1,4 @@
-package io.github.abhishekabhi789.lyricsforpoweramp.ui.components
+package io.github.abhishekabhi789.lyricsforpoweramp.ui.main
 
 import android.content.Context
 import android.content.Intent

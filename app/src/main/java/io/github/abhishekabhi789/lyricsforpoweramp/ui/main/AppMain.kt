@@ -1,4 +1,4 @@
-package io.github.abhishekabhi789.lyricsforpoweramp.ui
+package io.github.abhishekabhi789.lyricsforpoweramp.ui.main
 
 import android.content.Intent
 import androidx.compose.foundation.background
@@ -22,8 +22,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import io.github.abhishekabhi789.lyricsforpoweramp.activities.SearchResultActivity
-import io.github.abhishekabhi789.lyricsforpoweramp.ui.components.TopBar
-import io.github.abhishekabhi789.lyricsforpoweramp.ui.search.SearchUi
 import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.AppViewmodel
 import kotlinx.coroutines.launch
 

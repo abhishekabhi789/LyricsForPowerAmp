@@ -50,7 +50,9 @@
     <string name="settings_permission_dialog_ask">Grant</string>
     <string name="settings_permission_dialog_deny">Deny</string>
     <string name="settings_permission_dialog_disable_notification">Disable Notifications</string>
-    <string name="settings_permission_toast_denied">Notifications disabled</string>
+    <string name="settings_permission_toast_notification_disabled">Notifications disabled</string>
+    <string name="settings_permission_toast_graned">Permission Granted</string>
+    <string name="settings_permission_toast_denied">Permission Denied</string>
     <string name="settings_request_fail_notification_label">Notify on Lyrics Request Failure</string>
     <string name="settings_request_fail_notification_description">Get notified when lyrics retrieval fails. Allows manual search.</string>
     <string name="settings_overwrite_existing_notification_label">Replace Previous Notification</string>

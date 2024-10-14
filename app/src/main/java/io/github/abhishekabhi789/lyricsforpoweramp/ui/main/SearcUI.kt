@@ -1,4 +1,4 @@
-package io.github.abhishekabhi789.lyricsforpoweramp.ui.search
+package io.github.abhishekabhi789.lyricsforpoweramp.ui.main
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
