@@ -8,6 +8,7 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -49,7 +50,16 @@ class MainActivity : ComponentActivity() {
             val shouldAskForNotificationPermission = rememberSaveable {
                 AppPreference.getShowNotification(this@MainActivity)
             }
-            val permissionState = rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
+            val permissionState = rememberPermissionState(
+                permission = Manifest.permission.POST_NOTIFICATIONS
+            ) { isGranted ->
+                @StringRes val message = if (isGranted) R.string.settings_permission_toast_graned
+                else R.string.settings_permission_toast_denied
+                Toast(this@MainActivity).apply {
+                    setText(message)
+                    setDuration(Toast.LENGTH_SHORT)
+                }.show()
+            }
             var showPermissionDialog by rememberSaveable { mutableStateOf(!permissionState.status.isGranted) }
             if (shouldAskForNotificationPermission && showPermissionDialog) {
                 PermissionDialog(
@@ -70,7 +80,7 @@ class MainActivity : ComponentActivity() {
                         if (disableNotification) {
                             AppPreference.setShowNotification(this@MainActivity, false)
                             Toast(this@MainActivity).apply {
-                                setText(R.string.settings_permission_toast_denied)
+                                setText(R.string.settings_permission_toast_notification_disabled)
                                 setDuration(Toast.LENGTH_SHORT)
                             }.show()
                         }
