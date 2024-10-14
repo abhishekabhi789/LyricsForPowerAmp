@@ -26,9 +26,13 @@
     <string name="input_track_artists_label">Artists</string>
     <string name="input_track_album_label">Album Name</string>
     <string name="search">Search</string>
-    <!--    lyrics list-->
+    <!--    lyrics result-->
+    <string name="result_topbar_title">Results</string>
     <string name="choose_lyrics_button_description">Choose this lyrics</string>
     <string name="sending_lyrics">Sending lyrics to PowerAmp</string>
+    <string name="snackbar_failed_to_send_lyrics">Failed to send lyrics</string>
+    <string name="snackbar_retry_sending_lyrics">Retry</string>
+    <string name="snackbar_lyrics_sent_successfully">Lyrics Sent</string>
     <!--    settings-->
     <string name="top_bar_settings">Settings</string>
     <string name="settings_app_theme_label">Theme</string>

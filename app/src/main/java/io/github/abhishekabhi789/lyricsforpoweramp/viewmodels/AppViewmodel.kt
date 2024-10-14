@@ -1,9 +1,9 @@
-package io.github.abhishekabhi789.lyricsforpoweramp
+package io.github.abhishekabhi789.lyricsforpoweramp.viewmodels
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.github.abhishekabhi789.lyricsforpoweramp.helpers.LrclibApiHelper
 import io.github.abhishekabhi789.lyricsforpoweramp.model.InputState
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
@@ -116,16 +116,6 @@ class AppViewmodel : ViewModel() {
     /** Call this when after updating the mandatory fields to clear the error*/
     fun clearInvalidInputError() {
         updateInputValidStatus(true)
-    }
-
-    /** Will send the chosen lyrics to PowerAmp. Should call when have realId
-     * @return [Boolean] indicating request attempt result*/
-    fun chooseThisLyrics(context: Context, lyrics: Lyrics): Boolean {
-        return PowerAmpIntentUtils.sendLyricResponse(
-            context = context,
-            realId = _inputState.value.queryTrack.realId!!,
-            lyrics = lyrics
-        )
     }
 
     companion object {

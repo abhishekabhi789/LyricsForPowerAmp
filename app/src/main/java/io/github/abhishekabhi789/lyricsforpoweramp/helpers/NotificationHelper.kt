@@ -1,4 +1,4 @@
-package io.github.abhishekabhi789.lyricsforpoweramp
+package io.github.abhishekabhi789.lyricsforpoweramp.helpers
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -10,7 +10,10 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.maxmpz.poweramp.player.PowerampAPI
+import io.github.abhishekabhi789.lyricsforpoweramp.R
+import io.github.abhishekabhi789.lyricsforpoweramp.activities.MainActivity
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
+import io.github.abhishekabhi789.lyricsforpoweramp.receivers.LyricsRequestReceiver
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
 import java.util.UUID
 

@@ -28,8 +28,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import io.github.abhishekabhi789.lyricsforpoweramp.AppViewmodel
 import io.github.abhishekabhi789.lyricsforpoweramp.R
+import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.AppViewmodel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -62,10 +62,10 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import io.github.abhishekabhi789.lyricsforpoweramp.AppViewmodel
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.model.InputState.SearchMode
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.components.TextInput
+import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.AppViewmodel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -147,16 +147,16 @@ fun SearchUi(
                     )
                 }
             }
+            LaunchedEffect(pagerState.currentPage) {
+                focusManager.clearFocus()
+                viewModel.updateInputState(inputState.copy(searchMode = tabs[pagerState.currentPage]))
+                if (!isInputValid) viewModel.clearInvalidInputError()
+            }
             HorizontalPager(
                 state = pagerState,
                 verticalAlignment = Alignment.Top,
                 modifier = Modifier.fillMaxSize()
             ) { pageIndex ->
-                LaunchedEffect(pageIndex) {
-                    focusManager.clearFocus()
-                    viewModel.updateInputState(inputState.copy(searchMode = tabs[pageIndex]))
-                    if (!isInputValid) viewModel.clearInvalidInputError()
-                }
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top,
@@ -164,7 +164,6 @@ fun SearchUi(
                         .padding(top = 12.dp)
                         .padding(horizontal = 16.dp)
                 ) {
-
                     when (tabs[pageIndex]) {
                         SearchMode.Coarse -> {
                             TextInput(
@@ -183,7 +182,8 @@ fun SearchUi(
                                 .onGloballyPositioned {
                                     if (pagerState.currentPage == 0)
                                         searchButtonYPosition = it.positionInParent().y.toInt()
-                                })
+                                }
+                            )
                         }
 
                         SearchMode.Fine -> {

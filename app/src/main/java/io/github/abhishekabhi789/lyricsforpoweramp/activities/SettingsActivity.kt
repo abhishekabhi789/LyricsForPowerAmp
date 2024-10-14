@@ -1,4 +1,4 @@
-package io.github.abhishekabhi789.lyricsforpoweramp
+package io.github.abhishekabhi789.lyricsforpoweramp.activities
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -14,6 +14,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.settings.AppSettings
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.theme.LyricsForPowerAmpTheme
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
+import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.AppViewmodel
 
 
 class SettingsActivity : ComponentActivity() {

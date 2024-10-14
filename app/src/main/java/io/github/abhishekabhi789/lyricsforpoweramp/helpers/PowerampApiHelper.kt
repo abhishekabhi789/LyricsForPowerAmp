@@ -1,10 +1,11 @@
-package io.github.abhishekabhi789.lyricsforpoweramp
+package io.github.abhishekabhi789.lyricsforpoweramp.helpers
 
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.maxmpz.poweramp.player.PowerampAPI
 import com.maxmpz.poweramp.player.PowerampAPIHelper
+import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
@@ -14,7 +15,7 @@ import java.io.File
 /**
  * Contains functions helping to send and receive data with PowerAmp
  */
-object PowerAmpIntentUtils {
+object PowerampApiHelper {
 
     private val TAG = javaClass.simpleName
 

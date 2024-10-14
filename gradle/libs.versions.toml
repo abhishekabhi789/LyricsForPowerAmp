@@ -9,7 +9,6 @@ composeBom = "2024.09.03"
 foundation = "1.7.3"
 coroutines = "1.9.0"
 lifecycle = "2.8.6"
-navigation = "2.8.2"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
@@ -21,7 +20,6 @@ foundation-android = { module = "androidx.compose.foundation:foundation-android"
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
 lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 material3 = { module = "androidx.compose.material3:material3" }
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 ui = { module = "androidx.compose.ui:ui" }

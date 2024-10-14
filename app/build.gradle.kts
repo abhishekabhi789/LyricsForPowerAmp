@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.jetbrains.kotlin.compose)
+    id("kotlin-parcelize")
 }
 
 android {
@@ -64,7 +65,6 @@ dependencies {
     implementation(libs.core.splashscreen)
     implementation(libs.material3)
     implementation(libs.material.icons.extended)
-    implementation(libs.navigation.compose)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.activity.compose)
     implementation(libs.activity.compose)

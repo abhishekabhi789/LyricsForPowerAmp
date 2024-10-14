@@ -1,4 +1,4 @@
-package io.github.abhishekabhi789.lyricsforpoweramp.ui.lyricslist
+package io.github.abhishekabhi789.lyricsforpoweramp.ui.searchresult
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize

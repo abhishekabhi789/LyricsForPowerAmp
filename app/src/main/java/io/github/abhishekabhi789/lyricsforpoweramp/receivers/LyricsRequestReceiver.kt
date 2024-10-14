@@ -1,11 +1,15 @@
-package io.github.abhishekabhi789.lyricsforpoweramp
+package io.github.abhishekabhi789.lyricsforpoweramp.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.maxmpz.poweramp.player.PowerampAPI
-import io.github.abhishekabhi789.lyricsforpoweramp.PowerAmpIntentUtils.sendLyricResponse
+import io.github.abhishekabhi789.lyricsforpoweramp.R
+import io.github.abhishekabhi789.lyricsforpoweramp.helpers.LrclibApiHelper
+import io.github.abhishekabhi789.lyricsforpoweramp.helpers.NotificationHelper
+import io.github.abhishekabhi789.lyricsforpoweramp.helpers.PowerampApiHelper
+import io.github.abhishekabhi789.lyricsforpoweramp.helpers.PowerampApiHelper.sendLyricResponse
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
@@ -35,7 +39,7 @@ class LyricsRequestReceiver : BroadcastReceiver() {
         this.context = context
         notify(content = context.getString(R.string.preparing_search_track))
         realId = intent.getLongExtra(PowerampAPI.Track.REAL_ID, PowerampAPI.NO_ID)
-        track = PowerAmpIntentUtils.makeTrack(context, intent)
+        track = PowerampApiHelper.makeTrack(context, intent)
         Log.i(TAG, "handleLyricsRequest: request for $track")
         notify(content = context.getString(R.string.making_network_requests))
         val job = CoroutineScope(Dispatchers.IO).launch {

@@ -1,25 +1,20 @@
-package io.github.abhishekabhi789.lyricsforpoweramp
+package io.github.abhishekabhi789.lyricsforpoweramp.activities
 
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -30,15 +25,15 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import com.maxmpz.poweramp.player.PowerampAPI
+import io.github.abhishekabhi789.lyricsforpoweramp.R
+import io.github.abhishekabhi789.lyricsforpoweramp.helpers.PowerampApiHelper
 import io.github.abhishekabhi789.lyricsforpoweramp.model.InputState
-import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
+import io.github.abhishekabhi789.lyricsforpoweramp.receivers.LyricsRequestReceiver
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.AppMain
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.components.PermissionDialog
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.theme.LyricsForPowerAmpTheme
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.AppViewmodel
 
 class MainActivity : ComponentActivity() {
     private lateinit var viewModel: AppViewmodel
@@ -49,7 +44,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         installSplashScreen()
         setContent {
-            val scope = rememberCoroutineScope()
             viewModel = viewModel()
             /* should not ask from here if user disabled notifications from settings*/
             val shouldAskForNotificationPermission = rememberSaveable {
@@ -95,7 +89,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     when (intent?.action) {
                         PowerampAPI.Lyrics.ACTION_LYRICS_LINK, LyricsRequestReceiver.MANUAL_SEARCH_ACTION -> {
-                            val requestedTrack = PowerAmpIntentUtils.makeTrack(this, intent)
+                            val requestedTrack = PowerampApiHelper.makeTrack(this, intent)
                             viewModel.updateInputState(
                                 InputState(
                                     queryString = requestedTrack.trackName ?: "",
@@ -106,71 +100,15 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     }
-                    AppMain(
-                        viewModel = viewModel,
-                        onLyricChosen = { chosenLyrics, snackbarHostState, navController ->
-                            scope.launch {
-                                sendLyrics(snackbarHostState, chosenLyrics) {
-                                    when (intent.action) {
-                                        PowerampAPI.Lyrics.ACTION_LYRICS_LINK, LyricsRequestReceiver.MANUAL_SEARCH_ACTION -> {
-                                            finish()
-                                        }
-
-                                        else -> navController.navigateUp()
-                                    }
-                                }
-                            }
-                        }
-                    )
+                    AppMain(viewModel = viewModel)
                 }
             }
         }
-    }
-
-    private suspend fun sendLyrics(
-        snackbarHostState: SnackbarHostState,
-        chosenLyrics: Lyrics, onComplete: () -> Unit
-    ) {
-        withContext(Dispatchers.Main) {
-            val sent = viewModel.chooseThisLyrics(applicationContext, chosenLyrics)
-            if (sent) {
-                Log.d(TAG, "sendLyrics: sent")
-                when (snackbarHostState.showSnackbar(
-                    message = "Success",
-                    withDismissAction = true,
-                    duration = SnackbarDuration.Short
-                )) {
-                    SnackbarResult.Dismissed -> onComplete()
-                    else -> {}
-                }
-            } else {
-                Log.d(TAG, "sendLyrics: failed")
-                when (snackbarHostState.showSnackbar(
-                    "Failed to send lyrics",
-                    "Retry",
-                    withDismissAction = true,
-                    duration = SnackbarDuration.Short
-                )) {
-                    SnackbarResult.ActionPerformed -> sendLyrics(
-                        snackbarHostState,
-                        chosenLyrics,
-                        onComplete
-                    )
-
-                    SnackbarResult.Dismissed -> onComplete()
-                }
-            }
-        }
-
     }
 
     override fun onRestart() {
         super.onRestart()
         val preferredTheme = AppPreference.getTheme(this)
         viewModel.updateTheme(preferredTheme)
-    }
-
-    companion object {
-        private const val TAG = "MainActivity"
     }
 }

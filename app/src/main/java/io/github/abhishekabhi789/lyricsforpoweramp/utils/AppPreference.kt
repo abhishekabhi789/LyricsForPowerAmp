@@ -6,8 +6,8 @@ import android.os.Build
 import androidx.annotation.StringRes
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
-import io.github.abhishekabhi789.lyricsforpoweramp.AppViewmodel
 import io.github.abhishekabhi789.lyricsforpoweramp.R
+import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.AppViewmodel
 
 object AppPreference {
     private const val FILTER_PREF_NAME = "filter_preference"

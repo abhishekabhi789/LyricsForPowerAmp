@@ -1,7 +1,8 @@
-package io.github.abhishekabhi789.lyricsforpoweramp
+package io.github.abhishekabhi789.lyricsforpoweramp.helpers
 
 import android.util.Log
 import com.google.gson.Gson
+import io.github.abhishekabhi789.lyricsforpoweramp.BuildConfig
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.components.GITHUB_REPO_URL
