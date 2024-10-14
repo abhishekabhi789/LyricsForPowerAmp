@@ -4,7 +4,7 @@ import android.util.Log
 import com.google.gson.Gson
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
-import io.github.abhishekabhi789.lyricsforpoweramp.ui.utils.GITHUB_REPO_URL
+import io.github.abhishekabhi789.lyricsforpoweramp.ui.components.GITHUB_REPO_URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader

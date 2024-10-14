@@ -33,7 +33,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Settings"
+            android:name=".SettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.AppTheme" />
 

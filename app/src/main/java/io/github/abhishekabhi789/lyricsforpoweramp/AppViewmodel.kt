@@ -17,7 +17,7 @@ import kotlinx.coroutines.withContext
 import java.util.Collections.emptyList
 
 
-class LyricViewModel : ViewModel() {
+class AppViewmodel : ViewModel() {
 
     private val _inputState = MutableStateFlow(InputState())
 

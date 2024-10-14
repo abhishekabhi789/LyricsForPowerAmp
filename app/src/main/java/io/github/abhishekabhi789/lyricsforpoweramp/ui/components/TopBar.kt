@@ -1,4 +1,4 @@
-package io.github.abhishekabhi789.lyricsforpoweramp.ui.utils
+package io.github.abhishekabhi789.lyricsforpoweramp.ui.components
 
 import android.content.Context
 import android.content.Intent
@@ -40,7 +40,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.abhishekabhi789.lyricsforpoweramp.R
-import io.github.abhishekabhi789.lyricsforpoweramp.Settings
+import io.github.abhishekabhi789.lyricsforpoweramp.SettingsActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,7 +129,7 @@ fun TopBar(scrollBehavior: TopAppBarScrollBehavior, modifier: Modifier = Modifie
                     },
                     onClick = {
                         showMenu = false
-                        context.startActivity(Intent(context, Settings::class.java))
+                        context.startActivity(Intent(context, SettingsActivity::class.java))
                     },
                     leadingIcon = {
                         Icon(

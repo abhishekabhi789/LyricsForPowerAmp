@@ -62,17 +62,17 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import io.github.abhishekabhi789.lyricsforpoweramp.LyricViewModel
+import io.github.abhishekabhi789.lyricsforpoweramp.AppViewmodel
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.model.InputState.SearchMode
-import io.github.abhishekabhi789.lyricsforpoweramp.ui.utils.TextInput
+import io.github.abhishekabhi789.lyricsforpoweramp.ui.components.TextInput
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchUi(
     modifier: Modifier = Modifier,
-    viewModel: LyricViewModel,
+    viewModel: AppViewmodel,
     onSearchComplete: (errorMsg: String?) -> Unit
 ) {
     val isSearching by viewModel.isSearching.collectAsState()

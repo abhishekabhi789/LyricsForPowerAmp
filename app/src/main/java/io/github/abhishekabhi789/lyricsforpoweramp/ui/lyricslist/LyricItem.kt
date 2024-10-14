@@ -55,7 +55,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
-import io.github.abhishekabhi789.lyricsforpoweramp.ui.utils.CustomChip
+import io.github.abhishekabhi789.lyricsforpoweramp.ui.components.CustomChip
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalLayoutApi::class)

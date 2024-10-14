@@ -40,12 +40,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import io.github.abhishekabhi789.lyricsforpoweramp.LyricViewModel
+import io.github.abhishekabhi789.lyricsforpoweramp.AppViewmodel
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
+import io.github.abhishekabhi789.lyricsforpoweramp.ui.components.TopBar
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.lyricslist.MakeLyricCards
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.search.SearchUi
-import io.github.abhishekabhi789.lyricsforpoweramp.ui.utils.TopBar
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,7 +53,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AppMain(
     modifier: Modifier = Modifier,
-    viewModel: LyricViewModel,
+    viewModel: AppViewmodel,
     onLyricChosen: (Lyrics, SnackbarHostState, NavController) -> Unit,
     navController: NavHostController = rememberNavController(),
 ) {

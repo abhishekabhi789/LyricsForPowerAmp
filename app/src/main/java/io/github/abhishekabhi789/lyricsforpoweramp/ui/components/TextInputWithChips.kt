@@ -1,4 +1,4 @@
-package  io.github.abhishekabhi789.lyricsforpoweramp.ui.utils
+package  io.github.abhishekabhi789.lyricsforpoweramp.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -60,12 +61,12 @@ fun TextInputWithChips(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
-    var showClearWarningDialog: Boolean by remember { mutableStateOf(false) }
-    var value by remember { mutableStateOf("") }
+    var showClearWarningDialog: Boolean by rememberSaveable { mutableStateOf(false) }
+    var value by rememberSaveable { mutableStateOf("") }
     val chipList: SnapshotStateList<String> = remember {
         mutableStateListOf(*initialValue?.toTypedArray() ?: emptyArray())
     }
-    var isFocused by remember { mutableStateOf(false) }
+    var isFocused by rememberSaveable { mutableStateOf(false) }
     val sizeScale by animateFloatAsState(
         if (isFocused) 1.025f else 1f,
         label = "searchButtonAnimation"
