@@ -195,9 +195,12 @@ fun LyricItem(
                 verticalAlignment = Alignment.Top,
                 modifier = Modifier.animateContentSize()
             ) { pageIndex ->
+                val lyricsInView by remember { derivedStateOf { lyricPages[pageIndex] } }
                 Text(
-                    text = if (expanded) lyricPages[pageIndex]
-                    else lyricPages[pageIndex].lines().subList(0, 6).joinToString("\n"),
+                    text = if (expanded) lyricsInView
+                    else lyricsInView.lines().run {
+                        subList(0, size.coerceAtMost(6)).joinToString("\n")
+                    },
                     style = TextStyle(
                         fontStyle = FontStyle.Italic,
                         color = MaterialTheme.colorScheme.onSurface

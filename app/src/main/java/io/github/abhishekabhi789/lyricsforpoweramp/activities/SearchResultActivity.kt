@@ -3,7 +3,6 @@ package io.github.abhishekabhi789.lyricsforpoweramp.activities
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.os.Parcelable
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.core.os.BundleCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
@@ -35,7 +35,9 @@ class SearchResultActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        val searchResult: List<Lyrics>? = getParcelableArrayListExtra(intent, KEY_RESULT)
+        val searchResult: List<Lyrics>? = intent.extras?.let {
+            BundleCompat.getParcelableArrayList(it, KEY_RESULT, Lyrics::class.java)
+        }
         val appTheme: AppPreference.AppTheme = getSerializableExtra(intent, KEY_APP_THEME)
             ?: AppPreference.AppTheme.Light // set light as default
         val powerampId: Long? = getSerializableExtra(intent, KEY_POWERAMP_ID)
@@ -110,18 +112,6 @@ class SearchResultActivity : ComponentActivity() {
                 }
             }
         }
-    }
-
-    private inline fun <reified T : Parcelable> getParcelableArrayListExtra(
-        intent: Intent,
-        key: String
-    ): List<T>? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableArrayListExtra(key, T::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableArrayListExtra(key)
-        }?.toList()
     }
 
     private inline fun <reified T : Serializable> getSerializableExtra(
