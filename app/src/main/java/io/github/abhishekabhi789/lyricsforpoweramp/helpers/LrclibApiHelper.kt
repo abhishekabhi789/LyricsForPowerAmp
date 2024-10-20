@@ -6,6 +6,7 @@ import io.github.abhishekabhi789.lyricsforpoweramp.BuildConfig
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.main.GITHUB_REPO_URL
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
@@ -24,66 +25,76 @@ object LrclibApiHelper {
     private const val CONNECTION_TIMEOUT = 5000
     private const val READ_TIMEOUT = 30000
 
+    sealed class ApiResult {
+        data class Success(val data: String) : ApiResult()
+        data class Error(val message: String) : ApiResult()
+    }
+
     private suspend fun makeApiRequest(
         params: String,
-        onResult: (String) -> Unit,
-        onFail: (String) -> Unit
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
+        onComplete: (ApiResult) -> Unit
     ) {
         Log.d(TAG, "makeApiRequest: $params")
         try {
-            withContext(Dispatchers.IO) {
+            withContext(dispatcher) {
                 val url = API_BASE_URL + params
-                val connection = URL(url).openConnection() as HttpURLConnection
-                connection.connectTimeout = CONNECTION_TIMEOUT
-                connection.readTimeout = READ_TIMEOUT
-                connection.requestMethod = "GET"
-                try {
-                    connection.setRequestProperty(
-                        "User-Agent",
-                        buildString {
-                            append(BuildConfig.APPLICATION_ID)
-                            append("-")
-                            append(BuildConfig.BUILD_TYPE)
-                            append(" ")
-                            append(BuildConfig.VERSION_NAME)
-                            append(" ")
-                            append(GITHUB_REPO_URL)
-                        }
-                    )
-                    connection.setRequestProperty("Content-Type", "application/json")
-                } catch (e: IllegalStateException) {
-                    Log.e(TAG, "makeApiRequest: already connected", e)
-                }
-                val responseCode = connection.responseCode
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    val reader = BufferedReader(InputStreamReader(connection.inputStream))
-                    val response = StringBuilder()
-                    var line: String?
-                    while (reader.readLine().also { line = it } != null) {
-                        response.append(line)
+                val connection = (URL(url).openConnection() as? HttpURLConnection)?.apply {
+                    connectTimeout = CONNECTION_TIMEOUT
+                    readTimeout = READ_TIMEOUT
+                    requestMethod = "GET"
+                    try {
+                        setRequestProperty(
+                            "User-Agent",
+                            buildString {
+                                append(BuildConfig.APPLICATION_ID)
+                                append("-${BuildConfig.BUILD_TYPE}")
+                                append(" ${BuildConfig.VERSION_NAME}")
+                                append(" $GITHUB_REPO_URL")
+                            }
+                        )
+                        setRequestProperty("Content-Type", "application/json")
+                    } catch (e: IllegalStateException) {
+                        Log.e(TAG, "makeApiRequest: already connected", e)
                     }
-                    reader.close()
-                    onResult(response.toString())
-                } else {
-                    Log.e(
-                        TAG,
-                        "makeApiRequest: Network Request Failed, $responseCode ${connection.responseMessage}"
-                    )
-                    onFail("Request Failed, HTTP $responseCode: ${connection.responseMessage} ")
+                }
+                when (val responseCode = connection?.responseCode) {
+                    HttpURLConnection.HTTP_OK -> {
+                        BufferedReader(InputStreamReader(connection.inputStream)).use { reader ->
+                            val response = StringBuilder()
+                            var line: String?
+                            while (reader.readLine().also { line = it } != null) {
+                                response.append(line)
+                            }
+                            onComplete(ApiResult.Success(response.toString()))
+                        }
+                    }
+
+                    HttpURLConnection.HTTP_NOT_FOUND -> {
+                        val errorMsg = connection.responseMessage
+                        Log.i(TAG, "makeApiRequest: no result $errorMsg")
+                        onComplete(ApiResult.Error(errorMsg))
+                    }
+
+                    else -> {
+                        val errorMsg = connection?.responseMessage
+                        Log.e(TAG, "makeApiRequest: Request Failed, $responseCode: $errorMsg")
+                        onComplete(ApiResult.Error("Request Failed, HTTP $responseCode: $errorMsg"))
+                    }
                 }
             }
         } catch (e: MalformedURLException) {
             Log.e(TAG, "Malformed URL: $params", e)
-            onFail("Request Failed, Malformed URL: $params")
+            onComplete(ApiResult.Error("Request Failed, Malformed URL: $params"))
         } catch (e: IOException) {
             Log.e(TAG, "IO Exception during network request: ${e.message}", e)
-            onFail("Request Failed, Network error.")
+            onComplete(ApiResult.Error("Request Failed, Network error."))
         } catch (e: SocketTimeoutException) {
             Log.e(TAG, "makeApiRequest: timeout exception", e)
-            onFail("Request time out")
+            onComplete(ApiResult.Error("Request time out"))
         } catch (e: Exception) {
             Log.e(TAG, "Unexpected Exception during network request: ${e.message}", e)
-            onFail("Request Failed, Exception ${e.message}")
+            onComplete(ApiResult.Error("Request Failed, Exception ${e.message}"))
         }
     }
 
@@ -92,24 +103,30 @@ object LrclibApiHelper {
      *     LRCLIB#Get lyrics with a track's signature</a>*/
     suspend fun getLyricsForTracks(
         track: Track,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
         onResult: (Lyrics) -> Unit,
-        onFail: (String) -> Unit
+        onError: (String) -> Unit
     ) {
-        val requestParams = buildString {
-            append("get?")
-            if (!track.trackName.isNullOrEmpty()) append("track_name=${encode(track.trackName!!)}")
-            if (!track.artistName.isNullOrEmpty()) append("&artist_name=${encode(track.artistName!!)}")
-            if (!track.albumName.isNullOrEmpty()) append("&album_name=${encode(track.albumName!!)}")
-            if (track.duration != null && track.duration!! > 0) append("&duration=${track.duration}")
+        if (track.trackName.isNullOrEmpty()) {
+            onError("Track name cannot be empty")
+            return
         }
-        makeApiRequest(
-            requestParams,
-            onResult = { response ->
-                val result = Gson().fromJson(response, Lyrics::class.java)
-                Log.d(TAG, "getLyricsForTracks: search result ${result.trackName}")
-                onResult(result)
-            },
-            onFail = { error -> onFail(error) })
+        val requestParams = listOfNotNull(
+            "track_name=${encode(track.trackName!!)}",
+            track.artistName?.let { "artist_name=${encode(it)}" },
+            track.albumName?.let { "album_name=${encode(it)}" },
+            track.duration?.takeIf { it > 0 }?.let { "duration=$it" }
+        ).joinToString("&", prefix = "get?")
+        makeApiRequest(requestParams, dispatcher) { output ->
+            when (output) {
+                is ApiResult.Error -> onError(output.message)
+                is ApiResult.Success -> {
+                    val result = Gson().fromJson(output.data, Lyrics::class.java)
+                    Log.d(TAG, "getLyricsForTracks: search result ${result.trackName}")
+                    onResult(result)
+                }
+            }
+        }
     }
 
     /** Performs search for the given input.
@@ -118,40 +135,49 @@ object LrclibApiHelper {
      *     LRCLIB#Search for lyrics records</a>*/
     suspend fun searchLyricsForTrack(
         query: Any,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
         onResult: (List<Lyrics>) -> Unit,
         onError: (String) -> Unit
     ) {
         val requestParams: String = when (query) {
-            is String -> buildString { append("search?q=${encode(query)}") }
+            is String -> "search?q=${encode(query)}"
 
-            is Track ->
-                buildString {
-                    append("search?")
-                    append("track_name=${encode(query.trackName!!)}") //This can't be empty
-                    if (!query.artistName.isNullOrEmpty()) append("&artist_name=${encode(query.artistName!!)}")
-                    if (!query.albumName.isNullOrEmpty()) append("&album_name=${encode(query.albumName!!)}")
+            is Track -> {
+                if (query.trackName.isNullOrEmpty()) {
+                    onError("Track name cannot be empty")
+                    return
                 }
+                listOfNotNull(
+                    "track_name=${encode(query.trackName!!)}",
+                    query.artistName?.let { "artist_name=${encode(it)}" },
+                    query.albumName?.let { "album_name=${encode(it)}" }
+                ).joinToString("&", prefix = "search?")
+            }
 
             else -> {
-                val error = "Invalid query type: $query"
-                Log.e(TAG, error)
-                error
+                val error = "Invalid query type"
+                Log.e(TAG, "$error $query")
+                onError(error)
+                return
             }
         }
         Log.d(TAG, "searchLyricsForTrack: $requestParams")
-        makeApiRequest(
-            requestParams,
-            onResult = { results ->
-                val parsedResponse = parseSearchResponse(results)
-                if (!parsedResponse.isNullOrEmpty()) {
-                    Log.d(TAG, "searchLyricsForTrack: found ${parsedResponse.size} results")
-                    onResult(parsedResponse)
-                } else {
-                    Log.e(TAG, "searchLyricsForTrack: no result found $results")
-                    onError("No result found")
+        makeApiRequest(requestParams, dispatcher) { results ->
+            when (results) {
+                is ApiResult.Success -> {
+                    val parsedResponse = parseSearchResponse(results.data)
+                    if (!parsedResponse.isNullOrEmpty()) {
+                        Log.d(TAG, "searchLyricsForTrack: found ${parsedResponse.size} results")
+                        onResult(parsedResponse)
+                    } else {
+                        Log.e(TAG, "searchLyricsForTrack: no result found $results")
+                        onError("No result found")
+                    }
                 }
-            },
-            onFail = { error -> onError(error) })
+
+                is ApiResult.Error -> onError(results.message)
+            }
+        }
     }
 
     /**Converts JSON response into List of [Lyrics].

@@ -13,8 +13,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -23,6 +21,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import io.github.abhishekabhi789.lyricsforpoweramp.activities.SearchResultActivity
 import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.AppViewmodel
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @Composable
@@ -44,6 +43,33 @@ fun AppMain(modifier: Modifier = Modifier, viewModel: AppViewmodel) {
             if (snackbarHostState.currentSnackbarData == null) keyboard?.show() else keyboard?.hide()
         }
     }
+    LaunchedEffect(viewModel.searchErrorFlow) {
+        viewModel.searchErrorFlow.collectLatest { errMsg ->
+            keyboardController?.hide()
+            scope.launch {
+                when (snackbarHostState.showSnackbar(
+                    message = errMsg,
+                    withDismissAction = true
+                )) {
+                    SnackbarResult.Dismissed -> keyboardController?.show()
+                    else -> {}
+                }
+            }
+        }
+    }
+    LaunchedEffect(viewModel.searchErrorFlow) {
+        viewModel.searchResultFlow.collectLatest { result ->
+            val intent = Intent(context, SearchResultActivity::class.java).apply {
+                putParcelableArrayListExtra(SearchResultActivity.KEY_RESULT, ArrayList(result))
+                putExtra(SearchResultActivity.KEY_APP_THEME, viewModel.appTheme.value)
+                putExtra(
+                    SearchResultActivity.KEY_POWERAMP_ID,
+                    viewModel.inputState.value.queryTrack.realId
+                )
+            }
+            context.startActivity(intent)
+        }
+    }
     Scaffold(
         topBar = { TopBar() },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -51,35 +77,11 @@ fun AppMain(modifier: Modifier = Modifier, viewModel: AppViewmodel) {
             .then(focusRemoverModifier)
             .background(color = MaterialTheme.colorScheme.surface)
     ) { paddingValues ->
-        val result by viewModel.searchResults.collectAsState()
         SearchUi(
             viewModel = viewModel,
             modifier = Modifier
                 .padding(paddingValues)
                 .consumeWindowInsets(paddingValues)
-        ) { errMsg ->
-            keyboardController?.hide()
-            if (errMsg.isNullOrEmpty()) {
-                val intent = Intent(context, SearchResultActivity::class.java).apply {
-                    putParcelableArrayListExtra(SearchResultActivity.KEY_RESULT, ArrayList(result))
-                    putExtra(SearchResultActivity.KEY_APP_THEME, viewModel.appTheme.value)
-                    putExtra(
-                        SearchResultActivity.KEY_POWERAMP_ID,
-                        viewModel.inputState.value.queryTrack.realId
-                    )
-                }
-                context.startActivity(intent)
-            } else {
-                scope.launch {
-                    when (snackbarHostState.showSnackbar(
-                        message = errMsg,
-                        withDismissAction = true
-                    )) {
-                        SnackbarResult.Dismissed -> keyboardController?.show()
-                        else -> {}
-                    }
-                }
-            }
-        }
+        )
     }
 }

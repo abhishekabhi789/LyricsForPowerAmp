@@ -81,7 +81,7 @@ class LyricsRequestReceiver : BroadcastReceiver() {
         LrclibApiHelper.getLyricsForTracks(
             track = track,
             onResult = onSuccess,
-            onFail = { errMsg ->
+            onError = { errMsg ->
                 if (useFallbackMethod) {
                     notify(context.getString(R.string.notification_get_failed_trying_search))
                     Log.i(TAG, "getLyrics: trying with search method")
@@ -102,7 +102,6 @@ class LyricsRequestReceiver : BroadcastReceiver() {
 
     private fun sendLyrics(lyrics: Lyrics?): Boolean {
         val sent = sendLyricResponse(context, realId, lyrics)
-        Log.i(TAG, "sendLyrics: lyrics sent : $sent")
         val status = if (sent) R.string.sent else R.string.failed_to_send
         notify("${context.getString(R.string.lyrics)} ${context.getString(status)}")
         return sent

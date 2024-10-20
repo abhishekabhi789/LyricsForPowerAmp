@@ -70,11 +70,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchUi(
-    modifier: Modifier = Modifier,
-    viewModel: AppViewmodel,
-    onSearchComplete: (errorMsg: String?) -> Unit
-) {
+fun SearchUi(modifier: Modifier = Modifier, viewModel: AppViewmodel) {
     val isSearching by viewModel.isSearching.collectAsState()
     val inputState by viewModel.inputState.collectAsState()
     val isInputValid by viewModel.isInputValid.collectAsState()
@@ -143,7 +139,7 @@ fun SearchUi(
                                     viewModel.clearInvalidInputError()
                                 }
                             }
-                        },
+                        }
                     )
                 }
             }
@@ -250,11 +246,7 @@ fun SearchUi(
                 .padding(top = 36.dp)
         ) {
             OutlinedButton(
-                onClick = {
-                    viewModel.performSearch(
-                        onSearchSuccess = { onSearchComplete(null) },
-                        onSearchFail = { onSearchComplete(it) })
-                },
+                onClick = { viewModel.performSearch() },
                 interactionSource = interactionSource,
                 modifier = Modifier
                     .scale(sizeScale)

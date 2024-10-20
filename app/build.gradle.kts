@@ -13,8 +13,8 @@ android {
         applicationId = "io.github.abhishekabhi789.lyricsforpoweramp"
         minSdk = 21
         targetSdk = 35
-        versionCode = 11
-        versionName = "1.1"
+        versionCode = 12
+        versionName = "1.2"
         setProperty("archivesBaseName", "Lyrics4PowerAmp-v$versionName")
         vectorDrawables {
             useSupportLibrary = true

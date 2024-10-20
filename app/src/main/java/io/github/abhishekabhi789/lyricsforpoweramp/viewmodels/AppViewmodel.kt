@@ -9,12 +9,13 @@ import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Collections.emptyList
 
 
 class AppViewmodel : ViewModel() {
@@ -24,15 +25,20 @@ class AppViewmodel : ViewModel() {
     /** Carries inputs from PowerAmp or user, which is an instance of [InputState] */
     val inputState = _inputState.asStateFlow()
 
-    private var _searchResults = MutableStateFlow<List<Lyrics>>(emptyList())
+    private var _searchResult = MutableSharedFlow<List<Lyrics>>()
 
     /** Search results as [List]<[Lyrics]>*/
-    val searchResults = _searchResults.asStateFlow()
+    val searchResultFlow: SharedFlow<List<Lyrics>> = _searchResult
 
     /** Holds the current search job, inorder to cancel it if needed.*/
     private var searchJob: Job? = null
 
     private val _appTheme = MutableStateFlow(AppPreference.AppTheme.Auto)
+
+    private val _searchErrorFlow = MutableSharedFlow<String>()
+
+    /** Carries errors related search job*/
+    val searchErrorFlow: SharedFlow<String> = _searchErrorFlow
 
     /** Current App theme */
     val appTheme = _appTheme.asStateFlow()
@@ -65,48 +71,64 @@ class AppViewmodel : ViewModel() {
         }
     }
 
-    /**Abort search*/
+    /** Abort search*/
     fun abortSearch() {
         searchJob?.cancel()
         Log.i(TAG, "abortSearch: aborting lyrics search")
     }
 
-    /**Performs search for the [inputState]*/
-    fun performSearch(onSearchSuccess: () -> Unit, onSearchFail: (errorMsg: String) -> Unit) {
+    /** Performs search for the [inputState]*/
+    fun performSearch() {
         val isInputValid = isValidInput()
         if (!isInputValid) {
-            Log.e(TAG, "performSearch: can't search with invalid input ${_inputState.value}")
+            Log.e(TAG, "performSearch: invalid input ${_inputState.value}")
             updateInputValidStatus(false)
             return
         }
-        updateSearchStatus(true)
-        _searchResults.update { emptyList() }
+        emitSearchStatus(true)
         searchJob?.cancel()
         val searchQuery: Any = when (_inputState.value.searchMode) {
             InputState.SearchMode.Coarse -> _inputState.value.queryString
             InputState.SearchMode.Fine -> _inputState.value.queryTrack
         }
         searchJob = viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                LrclibApiHelper.searchLyricsForTrack(searchQuery,
-                    onResult = { list -> _searchResults.update { list } },
-                    onError = { error -> onSearchFail(error) })
-            }
-            if (searchJob?.isCancelled == true) {
-                onSearchFail("Cancelled")
-            }
-            if (_searchResults.value.isNotEmpty()) {
-                onSearchSuccess()
+            withContext(coroutineContext) {
+                LrclibApiHelper.searchLyricsForTrack(
+                    query = searchQuery,
+                    dispatcher = Dispatchers.IO,
+                    onResult = { list -> emitSearchResult(list) },
+                    onError = { error ->
+                        if (searchJob?.isCancelled == false) {
+                            // don't send cancellation error from here
+                            emitSearchError(error)
+                        }
+                    }
+                )
             }
         }
         searchJob?.invokeOnCompletion {
-            updateSearchStatus(false)
-            Log.d(TAG, "performSearch: search job completed")
+            if (searchJob?.isCancelled == true) {
+                emitSearchError("Cancelled")
+            }
+            emitSearchStatus(false)
+            Log.d(TAG, "performSearch: search job ended")
+            searchJob = null
         }
     }
 
-    private fun updateSearchStatus(isSearching: Boolean) {
+    private fun emitSearchStatus(isSearching: Boolean) {
         _isSearching.update { isSearching }
+    }
+
+    private fun emitSearchError(errMsg: String) {
+        viewModelScope.launch { _searchErrorFlow.emit(errMsg) }
+    }
+
+    private fun emitSearchResult(result: List<Lyrics>) {
+        viewModelScope.launch {
+            if (searchJob?.isCancelled == false)
+                _searchResult.emit(result)
+        }
     }
 
     private fun updateInputValidStatus(isInputValid: Boolean) {
