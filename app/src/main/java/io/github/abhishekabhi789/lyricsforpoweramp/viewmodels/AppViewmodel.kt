@@ -1,57 +1,61 @@
 package io.github.abhishekabhi789.lyricsforpoweramp.viewmodels
 
+import android.app.Application
 import android.util.Log
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.abhishekabhi789.lyricsforpoweramp.helpers.LrclibApiHelper
+import io.github.abhishekabhi789.App
 import io.github.abhishekabhi789.lyricsforpoweramp.model.InputState
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlin.coroutines.cancellation.CancellationException
 
+class AppViewmodel(application: Application) : AndroidViewModel(application) {
 
-class AppViewmodel : ViewModel() {
+    private val lrclibApiHelper = (application as App).lrclibApiHelper
+
+    private val _appTheme = MutableStateFlow(AppPreference.AppTheme.Auto)
+
+    /** Current App theme */
+    val appTheme = _appTheme.asStateFlow()
 
     private val _inputState = MutableStateFlow(InputState())
 
     /** Carries inputs from PowerAmp or user, which is an instance of [InputState] */
     val inputState = _inputState.asStateFlow()
 
-    private var _searchResult = MutableSharedFlow<List<Lyrics>>()
+    private var _isInputValid = MutableStateFlow(true)
 
-    /** Search results as [List]<[Lyrics]>*/
-    val searchResultFlow: SharedFlow<List<Lyrics>> = _searchResult
-
-    /** Holds the current search job, inorder to cancel it if needed.*/
-    private var searchJob: Job? = null
-
-    private val _appTheme = MutableStateFlow(AppPreference.AppTheme.Auto)
+    /** Stores if input is valid for a search operation */
+    val isInputValid = _isInputValid.asStateFlow()
 
     private val _searchErrorFlow = MutableSharedFlow<String>()
 
     /** Carries errors related search job*/
     val searchErrorFlow: SharedFlow<String> = _searchErrorFlow
 
-    /** Current App theme */
-    val appTheme = _appTheme.asStateFlow()
+    private var _searchResult = MutableSharedFlow<List<Lyrics>>()
+
+    /** Search results as [List]<[Lyrics]>*/
+    val searchResultFlow: SharedFlow<List<Lyrics>> = _searchResult
 
     private var _isSearching = MutableStateFlow(false)
 
     /** Status about search */
     val isSearching = _isSearching.asStateFlow()
 
-    private var _isInputValid = MutableStateFlow(true)
+    /* Holds the current search job, inorder to cancel it if needed.*/
+    private var searchJob: Job? = Job()
 
-    /** Stores if input is valid for a search operation */
-    val isInputValid = _isInputValid.asStateFlow()
 
     /** Updates app theme */
     fun updateTheme(theme: AppPreference.AppTheme) {
@@ -86,14 +90,17 @@ class AppViewmodel : ViewModel() {
             return
         }
         emitSearchStatus(true)
-        searchJob?.cancel()
         val searchQuery: Any = when (_inputState.value.searchMode) {
             InputState.SearchMode.Coarse -> _inputState.value.queryString
             InputState.SearchMode.Fine -> _inputState.value.queryTrack
         }
+        searchJob?.cancel()
+        searchJob = null
         searchJob = viewModelScope.launch {
-            withContext(coroutineContext) {
-                LrclibApiHelper.searchLyricsForTrack(
+            try {
+                ensureActive()
+                searchJob?.ensureActive()
+                lrclibApiHelper.searchLyricsForTrack(
                     query = searchQuery,
                     dispatcher = Dispatchers.IO,
                     onResult = { list -> emitSearchResult(list) },
@@ -104,6 +111,9 @@ class AppViewmodel : ViewModel() {
                         }
                     }
                 )
+            } catch (e: Exception) {
+                if (e is CancellationException)
+                    Log.e(TAG, "performSearch: job cancelled", e)
             }
         }
         searchJob?.invokeOnCompletion {

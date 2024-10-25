@@ -8,22 +8,23 @@ import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.main.GITHUB_REPO_URL
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import java.io.BufferedReader
+import okhttp3.Call
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import java.io.IOException
-import java.io.InputStreamReader
 import java.net.HttpURLConnection
-import java.net.MalformedURLException
 import java.net.SocketTimeoutException
-import java.net.URL
 import java.net.URLEncoder
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.coroutines.resume
 
 /**Helper to interacts with LRCLIB*/
-object LrclibApiHelper {
+class LrclibApiHelper(private val client: OkHttpClient) {
     private val TAG = javaClass.simpleName
-    private const val API_BASE_URL = "https://lrclib.net/api/"
-    private const val CONNECTION_TIMEOUT = 5000
-    private const val READ_TIMEOUT = 30000
 
     sealed class ApiResult {
         data class Success(val data: String) : ApiResult()
@@ -37,55 +38,80 @@ object LrclibApiHelper {
     ) {
         Log.d(TAG, "makeApiRequest: $params")
         try {
-            withContext(dispatcher) {
-                val url = API_BASE_URL + params
-                val connection = (URL(url).openConnection() as? HttpURLConnection)?.apply {
-                    connectTimeout = CONNECTION_TIMEOUT
-                    readTimeout = READ_TIMEOUT
-                    requestMethod = "GET"
-                    try {
-                        setRequestProperty(
-                            "User-Agent",
-                            buildString {
-                                append(BuildConfig.APPLICATION_ID)
-                                append("-${BuildConfig.BUILD_TYPE}")
-                                append(" ${BuildConfig.VERSION_NAME}")
-                                append(" $GITHUB_REPO_URL")
-                            }
-                        )
-                        setRequestProperty("Content-Type", "application/json")
-                    } catch (e: IllegalStateException) {
-                        Log.e(TAG, "makeApiRequest: already connected", e)
-                    }
-                }
-                when (val responseCode = connection?.responseCode) {
-                    HttpURLConnection.HTTP_OK -> {
-                        BufferedReader(InputStreamReader(connection.inputStream)).use { reader ->
-                            val response = StringBuilder()
-                            var line: String?
-                            while (reader.readLine().also { line = it } != null) {
-                                response.append(line)
-                            }
-                            onComplete(ApiResult.Success(response.toString()))
+            val httpUrl = (API_BASE_URL + params).toHttpUrlOrNull()
+            if (httpUrl != null) {
+                val request = Request.Builder().apply {
+                    url(httpUrl)
+                    header(
+                        "User-Agent",
+                        buildString {
+                            append(BuildConfig.APPLICATION_ID)
+                            append("-${BuildConfig.BUILD_TYPE}")
+                            append(" ${BuildConfig.VERSION_NAME}")
+                            append(" $GITHUB_REPO_URL")
+                        })
+                    header("Content-Type", "application/json")
+                    get()
+                }.build()
+                val result = withContext(dispatcher) {
+                    suspendCancellableCoroutine { continuation ->
+                        val call = client.newCall(request)
+                        continuation.invokeOnCancellation {
+                            call.cancel()
                         }
-                    }
+                        call.enqueue(object : okhttp3.Callback {
+                            override fun onFailure(call: Call, e: IOException) {
+                                if (call.isCanceled()) {
+                                    continuation.resume(ApiResult.Error("Cancelled"))
+                                } else {
+                                    continuation.resume(ApiResult.Error("Request Failed, Network error."))
+                                }
+                            }
 
-                    HttpURLConnection.HTTP_NOT_FOUND -> {
-                        val errorMsg = connection.responseMessage
-                        Log.i(TAG, "makeApiRequest: no result $errorMsg")
-                        onComplete(ApiResult.Error(errorMsg))
-                    }
+                            override fun onResponse(call: Call, response: Response) {
+                                try {
+                                    when (response.code) {
+                                        HttpURLConnection.HTTP_OK -> {
+                                            response.body?.let { responseBody ->
+                                                val result = responseBody.string()
+                                                continuation.resume(ApiResult.Success(result))
+                                            }
+                                                ?: continuation.resume(ApiResult.Error("Empty response"))
+                                        }
 
-                    else -> {
-                        val errorMsg = connection?.responseMessage
-                        Log.e(TAG, "makeApiRequest: Request Failed, $responseCode: $errorMsg")
-                        onComplete(ApiResult.Error("Request Failed, HTTP $responseCode: $errorMsg"))
+                                        HttpURLConnection.HTTP_NOT_FOUND -> {
+                                            val errorMsg = response.message
+                                            Log.i(TAG, "makeApiRequest: no result $errorMsg")
+                                            continuation.resume(ApiResult.Error(errorMsg))
+                                        }
+
+                                        else -> {
+                                            val errorMsg =
+                                                "Request Failed, HTTP ${response.code}: ${response.message}"
+                                            Log.e(TAG, "makeApiRequest: $errorMsg")
+                                            continuation.resume(ApiResult.Error(errorMsg))
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "makeApiRequest: Error processing response", e)
+                                    continuation.resume(ApiResult.Error("Error processing response: ${e.message}"))
+                                } finally {
+                                    response.close()
+                                }
+                            }
+                        })
                     }
                 }
+                onComplete(result)
+            } else {
+                Log.e(TAG, "makeApiRequest: failed to prepare url, prams: $params")
+                onComplete(ApiResult.Error("failed to make request"))
             }
-        } catch (e: MalformedURLException) {
-            Log.e(TAG, "Malformed URL: $params", e)
-            onComplete(ApiResult.Error("Request Failed, Malformed URL: $params"))
+        } catch (e: CancellationException) {
+            Log.e(TAG, "CancellationException", e)
+            onComplete(ApiResult.Error("Cancelled"))
+        } catch (e: IllegalArgumentException) {
+            Log.e(TAG, "IllegalArgumentException", e)
         } catch (e: IOException) {
             Log.e(TAG, "IO Exception during network request: ${e.message}", e)
             onComplete(ApiResult.Error("Request Failed, Network error."))
@@ -189,4 +215,9 @@ object LrclibApiHelper {
 
     private fun encode(text: String) = URLEncoder.encode(text, "UTF-8")
 
+    companion object {
+        private const val API_BASE_URL = "https://lrclib.net/api/"
+        const val CONNECTION_TIMEOUT = 5_000L
+        const val READ_TIMEOUT = 30_000L
+    }
 }

@@ -58,6 +58,7 @@ android {
 
 dependencies {
     implementation(project(":poweramp_api_lib"))
+    implementation(libs.okhttp)
     implementation(libs.accompanist.permissions)
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.lifecycle.viewmodel.compose)
