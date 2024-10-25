@@ -20,12 +20,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import io.github.abhishekabhi789.lyricsforpoweramp.activities.SearchResultActivity
-import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.AppViewmodel
+import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.MainActivityViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @Composable
-fun AppMain(modifier: Modifier = Modifier, viewModel: AppViewmodel) {
+fun AppMain(modifier: Modifier = Modifier, viewModel: MainActivityViewModel) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val scope = rememberCoroutineScope()

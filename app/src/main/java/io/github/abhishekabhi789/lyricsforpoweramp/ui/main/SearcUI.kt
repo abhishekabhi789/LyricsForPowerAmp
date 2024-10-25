@@ -53,12 +53,12 @@ import androidx.compose.ui.window.DialogProperties
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.model.InputState.SearchMode
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.components.TextInput
-import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.AppViewmodel
+import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.MainActivityViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchUi(modifier: Modifier = Modifier, viewModel: AppViewmodel) {
+fun SearchUi(modifier: Modifier = Modifier, viewModel: MainActivityViewModel) {
     val isSearching by viewModel.isSearching.collectAsState()
     val inputState by viewModel.inputState.collectAsState()
     val isInputValid by viewModel.isInputValid.collectAsState()

@@ -7,7 +7,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import io.github.abhishekabhi789.lyricsforpoweramp.R
-import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.AppViewmodel
+import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.MainActivityViewModel
 
 object AppPreference {
     private const val FILTER_PREF_NAME = "filter_preference"
@@ -45,7 +45,7 @@ object AppPreference {
         else listOf(AppTheme.Light, AppTheme.Dark)
     }
 
-    fun setTheme(context: Context, theme: AppTheme, viewModel: AppViewmodel) {
+    fun setTheme(context: Context, theme: AppTheme, viewModel: MainActivityViewModel) {
         val sharedPreferences = getSharedPreference(context, UI_PREF_NAME)
         sharedPreferences?.edit()?.putString(UI_THEME_KEY, theme.name)?.apply()
         viewModel.updateTheme(theme)

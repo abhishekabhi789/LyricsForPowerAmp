@@ -29,11 +29,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.abhishekabhi789.lyricsforpoweramp.R
-import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.AppViewmodel
+import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.MainActivityViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppSettings(modifier: Modifier = Modifier, viewModel: AppViewmodel, onClose: () -> Unit) {
+fun AppSettings(
+    modifier: Modifier = Modifier,
+    viewModel: MainActivityViewModel,
+    onClose: () -> Unit
+) {
     val focusManager = LocalFocusManager.current
     val interactionSource = remember { MutableInteractionSource() }
     val focusRemoverModifier = Modifier.clickable(
@@ -87,6 +91,6 @@ fun AppSettings(modifier: Modifier = Modifier, viewModel: AppViewmodel, onClose:
 @Preview(showSystemUi = true)
 @Composable
 fun PreviewAppSettings() {
-    val viewModel: AppViewmodel = viewModel()
+    val viewModel: MainActivityViewModel = viewModel()
     AppSettings(viewModel = viewModel) {}
 }

@@ -34,10 +34,10 @@ import io.github.abhishekabhi789.lyricsforpoweramp.ui.components.PermissionDialo
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.main.AppMain
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.theme.LyricsForPowerAmpTheme
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
-import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.AppViewmodel
+import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.MainActivityViewModel
 
 class MainActivity : ComponentActivity() {
-    private lateinit var viewModel: AppViewmodel
+    private lateinit var viewModel: MainActivityViewModel
 
     @SuppressLint("InlinedApi")
     @OptIn(ExperimentalPermissionsApi::class)

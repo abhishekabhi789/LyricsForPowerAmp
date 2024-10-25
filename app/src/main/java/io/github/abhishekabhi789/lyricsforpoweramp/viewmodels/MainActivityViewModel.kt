@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
-class AppViewmodel(application: Application) : AndroidViewModel(application) {
+class MainActivityViewModel(application: Application) : AndroidViewModel(application) {
 
     private val lrclibApiHelper = (application as App).lrclibApiHelper
 
@@ -151,6 +151,6 @@ class AppViewmodel(application: Application) : AndroidViewModel(application) {
     }
 
     companion object {
-        private const val TAG = "LyricViewModel"
+        private const val TAG = "MainActivityViewModel"
     }
 }

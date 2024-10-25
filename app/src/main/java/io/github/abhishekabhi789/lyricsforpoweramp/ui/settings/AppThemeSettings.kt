@@ -30,11 +30,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
-import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.AppViewmodel
+import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.MainActivityViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppThemeSettings(modifier: Modifier = Modifier, viewModel: AppViewmodel) {
+fun AppThemeSettings(modifier: Modifier = Modifier, viewModel: MainActivityViewModel) {
     SettingsGroup(
         modifier = modifier,
         title = stringResource(id = R.string.settings_app_theme_label),

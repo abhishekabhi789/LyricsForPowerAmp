@@ -14,7 +14,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.settings.AppSettings
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.theme.LyricsForPowerAmpTheme
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
-import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.AppViewmodel
+import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.MainActivityViewModel
 
 
 class SettingsActivity : ComponentActivity() {
@@ -22,7 +22,7 @@ class SettingsActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
-            val viewModel: AppViewmodel = viewModel()
+            val viewModel: MainActivityViewModel = viewModel()
             val preferredTheme = AppPreference.getTheme(this)
             viewModel.updateTheme(preferredTheme)
             val appTheme by viewModel.appTheme.collectAsState()
