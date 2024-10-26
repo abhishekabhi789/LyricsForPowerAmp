@@ -98,7 +98,6 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
         searchJob = null
         searchJob = viewModelScope.launch {
             try {
-                ensureActive()
                 searchJob?.ensureActive()
                 lrclibApiHelper.searchLyricsForTrack(
                     query = searchQuery,

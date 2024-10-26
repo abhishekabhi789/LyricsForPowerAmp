@@ -10,7 +10,6 @@ import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference.FILTER
-import java.io.File
 
 /**
  * Contains functions helping to send and receive data with PowerAmp
@@ -55,13 +54,10 @@ object PowerampApiHelper {
      * Corresponding filter words will be removed from the value.
      */
     private fun processField(context: Context, field: FILTER, value: String?): String? {
-        //sometimes filename will be in the title, this nameWithoutExtension works somehow even with non filename value
-        val fieldValue = if (field == FILTER.TITLE_FILTER && !value.isNullOrEmpty())
-            File(value).nameWithoutExtension else value
         val filter = AppPreference.getFilter(context, field)?.lines()
-        return filter?.fold(fieldValue) { cleanedValue, filterItem ->
+        return filter?.fold(value) { cleanedValue, filterItem ->
             cleanedValue?.replace(Regex(filterItem, RegexOption.IGNORE_CASE), "")
-        } ?: fieldValue
+        } ?: value
     }
 
     /**

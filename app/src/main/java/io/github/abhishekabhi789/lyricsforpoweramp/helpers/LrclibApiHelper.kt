@@ -57,6 +57,7 @@ class LrclibApiHelper(private val client: OkHttpClient) {
                     suspendCancellableCoroutine { continuation ->
                         val call = client.newCall(request)
                         continuation.invokeOnCancellation {
+                            Log.i(TAG, "makeApiRequest: continuation cancel invoked")
                             call.cancel()
                         }
                         call.enqueue(object : okhttp3.Callback {
@@ -145,7 +146,11 @@ class LrclibApiHelper(private val client: OkHttpClient) {
         ).joinToString("&", prefix = "get?")
         makeApiRequest(requestParams, dispatcher) { output ->
             when (output) {
-                is ApiResult.Error -> onError(output.message)
+                is ApiResult.Error -> {
+                    Log.e(TAG, "getLyricsForTracks: error ${output.message}")
+                    onError(output.message)
+                }
+
                 is ApiResult.Success -> {
                     val result = Gson().fromJson(output.data, Lyrics::class.java)
                     Log.d(TAG, "getLyricsForTracks: search result ${result.trackName}")
@@ -217,7 +222,7 @@ class LrclibApiHelper(private val client: OkHttpClient) {
 
     companion object {
         private const val API_BASE_URL = "https://lrclib.net/api/"
-        const val CONNECTION_TIMEOUT = 5_000L
+        const val CONNECTION_TIMEOUT = 10_000L
         const val READ_TIMEOUT = 30_000L
     }
 }

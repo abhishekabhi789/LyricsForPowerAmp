@@ -14,6 +14,7 @@ import io.github.abhishekabhi789.lyricsforpoweramp.helpers.PowerampApiHelper.sen
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,16 +42,20 @@ class LyricsRequestReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun handleLyricsRequest(intent: Intent) {
+    private fun handleLyricsRequest(
+        intent: Intent,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ) {
         notify(content = mContext.getString(R.string.preparing_search_track))
         realId = intent.getLongExtra(PowerampAPI.Track.REAL_ID, PowerampAPI.NO_ID)
         track = PowerampApiHelper.makeTrack(mContext, intent)
         Log.i(TAG, "handleLyricsRequest: request for $track")
         notify(content = mContext.getString(R.string.making_network_requests))
-        val job = CoroutineScope(Dispatchers.IO).launch {
+        val job = CoroutineScope(dispatcher).launch {
             withTimeoutOrNull(POWERAMP_LYRICS_REQUEST_WAIT_TIMEOUT) {
                 getLyrics(
                     track = track,
+                    dispatcher = dispatcher,
                     onSuccess = {
                         notify(mContext.getString(R.string.sending_lyrics))
                         sendLyrics(it)
@@ -77,6 +82,7 @@ class LyricsRequestReceiver : BroadcastReceiver() {
 
     private suspend fun getLyrics(
         track: Track,
+        dispatcher: CoroutineDispatcher,
         onSuccess: (Lyrics) -> Unit,
         onError: (String) -> Unit
     ) {
@@ -84,14 +90,17 @@ class LyricsRequestReceiver : BroadcastReceiver() {
         Log.i(TAG, "getLyrics: fallback to search permitted- $useFallbackMethod")
         lrclibApiHelper.getLyricsForTracks(
             track = track,
+            dispatcher = dispatcher,
             onResult = onSuccess,
             onError = { errMsg ->
+                Log.e(TAG, "getLyrics: get request failed $errMsg")
                 if (useFallbackMethod) {
                     notify(mContext.getString(R.string.notification_get_failed_trying_search))
                     Log.i(TAG, "getLyrics: trying with search method")
-                    CoroutineScope(Dispatchers.IO).launch {
+                    CoroutineScope(dispatcher).launch {
                         lrclibApiHelper.searchLyricsForTrack(
                             query = track,
+                            dispatcher = dispatcher,
                             onResult = { onSuccess(it.first()) },
                             onError = { onError("getLyrics: failed - $it") }
                         )
@@ -102,6 +111,7 @@ class LyricsRequestReceiver : BroadcastReceiver() {
                 }
             }
         )
+
     }
 
     private fun sendLyrics(lyrics: Lyrics?): Boolean {
@@ -130,6 +140,6 @@ class LyricsRequestReceiver : BroadcastReceiver() {
         private const val TAG = "LyricsRequestReceiver"
         const val MANUAL_SEARCH_ACTION =
             "io.github.abhishekabhi789.lyricsforpoweramp.MANUAL_SEARCH_ACTION"
-        const val POWERAMP_LYRICS_REQUEST_WAIT_TIMEOUT = 5000L
+        const val POWERAMP_LYRICS_REQUEST_WAIT_TIMEOUT = 10_000L
     }
 }

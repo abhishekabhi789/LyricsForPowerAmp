@@ -95,13 +95,14 @@ fun LyricItem(
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(AssistChipDefaults.IconSize)
                 )
-                Text(
-                    text = lyrics.trackName,
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-                Spacer(modifier = Modifier.weight(1f))
+                Box(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = lyrics.trackName,
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
                 if (isLaunchedFromPowerAmp) {
                     FilledTonalIconButton(
                         colors = IconButtonDefaults.filledTonalIconButtonColors()
@@ -109,7 +110,8 @@ fun LyricItem(
                                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                             ),
-                        onClick = { onLyricChosen(lyrics) }) {
+                        onClick = { onLyricChosen(lyrics) }
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Done,
                             contentDescription = stringResource(R.string.choose_lyrics_button_description),
@@ -239,7 +241,7 @@ fun LyricItem(
 @Composable
 fun PreviewLyricItem() {
     val data = Lyrics(
-        trackName = "Track Title 1",
+        trackName = "Fireworks (feat. Moss Kena & The knocks) [Breakbot & Irfane Remix]",
         artistName = "Artists Name 1",
         albumName = "Album Name 1",
         duration = 200.0,
