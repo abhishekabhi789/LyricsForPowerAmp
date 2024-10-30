@@ -1,12 +1,9 @@
 package io.github.abhishekabhi789.lyricsforpoweramp.ui.searchresult
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -47,7 +44,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -57,6 +54,7 @@ import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.components.CustomChip
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -216,23 +214,25 @@ fun LyricItem(
                 )
             }
 
-            this@ElevatedCard.AnimatedVisibility(visible = showExpandIcon) {
-                val rotationAnimation = animateFloatAsState(
-                    targetValue = if (expanded) -180f else 0f,
-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                    label = "expand icon rotation animation"
-                )
-                Icon(
-                    imageVector = Icons.Default.ExpandMore,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .padding(end = 12.dp, top = 8.dp)
-                        .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
-                        .rotate(rotationAnimation.value)
-                        .animateEnterExit(enter = scaleIn(), exit = scaleOut())
+            val rotationAnimation = animateFloatAsState(
+                targetValue = if (expanded) -180f else 0f,
+                animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                label = "expand icon rotation animation"
+            )
+            Icon(
+                imageVector = Icons.Default.ExpandMore,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(end = 12.dp, top = 8.dp)
+                    .graphicsLayer {
+                        translationY = -60 * abs(pagerState.currentPageOffsetFraction)
+                        rotationZ = rotationAnimation.value
+                        alpha = abs(1 - (pagerState.currentPageOffsetFraction * 2))
+                    }
+                    .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
 
-                )
-            }
+            )
+
         }
     }
 }

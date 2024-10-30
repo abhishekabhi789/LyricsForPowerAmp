@@ -8,6 +8,7 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -42,8 +43,10 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("InlinedApi")
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
         installSplashScreen()
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+
         setContent {
             viewModel = viewModel()
             /* should not ask from here if user disabled notifications from settings*/
