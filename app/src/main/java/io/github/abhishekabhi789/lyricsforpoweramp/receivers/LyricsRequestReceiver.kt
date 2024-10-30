@@ -94,7 +94,7 @@ class LyricsRequestReceiver : BroadcastReceiver() {
             onResult = onSuccess,
             onError = { errMsg ->
                 Log.e(TAG, "getLyrics: get request failed $errMsg")
-                if (useFallbackMethod) {
+                if (useFallbackMethod && errMsg == "Not Found") {
                     notify(mContext.getString(R.string.notification_get_failed_trying_search))
                     Log.i(TAG, "getLyrics: trying with search method")
                     CoroutineScope(dispatcher).launch {
@@ -106,12 +106,11 @@ class LyricsRequestReceiver : BroadcastReceiver() {
                         )
                     }
                 } else {
-                    Log.e(TAG, "getLyrics: no results, fallback not permitted")
+                    Log.e(TAG, "getLyrics: no results, fallback not possible")
                     onError("getLyrics: failed - $errMsg")
                 }
             }
         )
-
     }
 
     private fun sendLyrics(lyrics: Lyrics?): Boolean {
