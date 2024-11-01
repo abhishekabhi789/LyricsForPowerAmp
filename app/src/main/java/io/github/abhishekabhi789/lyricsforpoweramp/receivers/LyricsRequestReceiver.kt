@@ -5,8 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.maxmpz.poweramp.player.PowerampAPI
-import io.github.abhishekabhi789.App
 import io.github.abhishekabhi789.lyricsforpoweramp.R
+import io.github.abhishekabhi789.lyricsforpoweramp.helpers.HttpClient
 import io.github.abhishekabhi789.lyricsforpoweramp.helpers.LrclibApiHelper
 import io.github.abhishekabhi789.lyricsforpoweramp.helpers.NotificationHelper
 import io.github.abhishekabhi789.lyricsforpoweramp.helpers.PowerampApiHelper
@@ -31,8 +31,7 @@ class LyricsRequestReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context != null && intent != null) {
             this.mContext = context
-            val application = context.applicationContext as App
-            lrclibApiHelper = application.lrclibApiHelper
+            lrclibApiHelper = LrclibApiHelper(HttpClient.okHttpClient)
             when (intent.action) {
                 PowerampAPI.Lyrics.ACTION_NEED_LYRICS -> {
                     notificationHelper = NotificationHelper(context)

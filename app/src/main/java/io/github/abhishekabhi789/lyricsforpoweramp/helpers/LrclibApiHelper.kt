@@ -63,8 +63,10 @@ class LrclibApiHelper(private val client: OkHttpClient) {
                         call.enqueue(object : okhttp3.Callback {
                             override fun onFailure(call: Call, e: IOException) {
                                 if (call.isCanceled()) {
+                                    Log.i(TAG, "onFailure: call cancelled")
                                     continuation.resume(ApiResult.Error("Cancelled"))
                                 } else {
+                                    Log.e(TAG, "onFailure: failed, ${e.message}")
                                     continuation.resume(ApiResult.Error("Request Failed, Network error."))
                                 }
                             }
@@ -222,7 +224,5 @@ class LrclibApiHelper(private val client: OkHttpClient) {
 
     companion object {
         private const val API_BASE_URL = "https://lrclib.net/api/"
-        const val CONNECTION_TIMEOUT = 10_000L
-        const val READ_TIMEOUT = 30_000L
     }
 }
