@@ -72,17 +72,15 @@ class NotificationHelper(private val context: Context) {
                 PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_ONE_SHOT
             )
         } else null
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle(title)
-            .setContentText(content)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .apply {
-                if (track != null) setAutoCancel(true)
-                if (pendingIntent != null) setContentIntent(pendingIntent)
-                if (subText != null) setSubText(subText)
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) setPriority(Notification.PRIORITY_LOW)
-            }
-            .build()
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID).apply {
+            setContentTitle(title)
+            setContentText(content)
+            setSmallIcon(R.drawable.app_icon)
+            if (track != null) setAutoCancel(true)
+            if (pendingIntent != null) setContentIntent(pendingIntent)
+            if (subText != null) setSubText(subText)
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) setPriority(Notification.PRIORITY_LOW)
+        }.build()
         notificationManager.notify(notificationId, notification)
     }
 
