@@ -48,7 +48,7 @@ fun AppMain(modifier: Modifier = Modifier, viewModel: MainActivityViewModel) {
             keyboardController?.hide()
             scope.launch {
                 when (snackbarHostState.showSnackbar(
-                    message = errMsg,
+                    message = "${context.getString(errMsg.errMsg)} ${errMsg.moreInfo}",
                     withDismissAction = true
                 )) {
                     SnackbarResult.Dismissed -> keyboardController?.show()
@@ -57,7 +57,7 @@ fun AppMain(modifier: Modifier = Modifier, viewModel: MainActivityViewModel) {
             }
         }
     }
-    LaunchedEffect(viewModel.searchErrorFlow) {
+    LaunchedEffect(viewModel.searchResultFlow) {
         viewModel.searchResultFlow.collectLatest { result ->
             val intent = Intent(context, SearchResultActivity::class.java).apply {
                 putParcelableArrayListExtra(SearchResultActivity.KEY_RESULT, ArrayList(result))

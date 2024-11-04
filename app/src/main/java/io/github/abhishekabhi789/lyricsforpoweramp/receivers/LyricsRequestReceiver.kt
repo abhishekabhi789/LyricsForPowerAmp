@@ -61,7 +61,7 @@ class LyricsRequestReceiver : BroadcastReceiver() {
                         notificationHelper.cancelNotification()
                     },
                     onError = {
-                        notify(mContext.getString(R.string.error) + ": $it")
+                        notify(mContext.getString(it.errMsg) + " ${it.moreInfo}")
                         Log.e(TAG, "handleLyricsRequest: $it")
                         suggestManualSearch()
                     },
@@ -83,7 +83,7 @@ class LyricsRequestReceiver : BroadcastReceiver() {
         track: Track,
         dispatcher: CoroutineDispatcher,
         onSuccess: (Lyrics) -> Unit,
-        onError: (String) -> Unit
+        onError: (LrclibApiHelper.Error) -> Unit
     ) {
         val useFallbackMethod = AppPreference.getSearchIfGetFailed(mContext)
         Log.i(TAG, "getLyrics: fallback to search permitted- $useFallbackMethod")
@@ -91,9 +91,9 @@ class LyricsRequestReceiver : BroadcastReceiver() {
             track = track,
             dispatcher = dispatcher,
             onResult = onSuccess,
-            onError = { errMsg ->
-                Log.e(TAG, "getLyrics: get request failed $errMsg")
-                if (useFallbackMethod && errMsg == "Not Found") {
+            onError = { error ->
+                Log.e(TAG, "getLyrics: get request failed $error")
+                if (useFallbackMethod && error == LrclibApiHelper.Error.NO_RESULTS) {
                     notify(mContext.getString(R.string.notification_get_failed_trying_search))
                     Log.i(TAG, "getLyrics: trying with search method")
                     CoroutineScope(dispatcher).launch {
@@ -101,12 +101,12 @@ class LyricsRequestReceiver : BroadcastReceiver() {
                             query = track,
                             dispatcher = dispatcher,
                             onResult = { onSuccess(it.first()) },
-                            onError = { onError("getLyrics: failed - $it") }
+                            onError = onError
                         )
                     }
                 } else {
                     Log.e(TAG, "getLyrics: no results, fallback not possible")
-                    onError("getLyrics: failed - $errMsg")
+                    onError(error)
                 }
             }
         )
@@ -138,6 +138,6 @@ class LyricsRequestReceiver : BroadcastReceiver() {
         private const val TAG = "LyricsRequestReceiver"
         const val MANUAL_SEARCH_ACTION =
             "io.github.abhishekabhi789.lyricsforpoweramp.MANUAL_SEARCH_ACTION"
-        const val POWERAMP_LYRICS_REQUEST_WAIT_TIMEOUT = 10_000L
+        const val POWERAMP_LYRICS_REQUEST_WAIT_TIMEOUT = 30_000L
     }
 }

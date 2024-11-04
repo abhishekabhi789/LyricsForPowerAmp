@@ -37,10 +37,10 @@ class MainActivityViewModel : ViewModel() {
     /** Stores if input is valid for a search operation */
     val isInputValid = _isInputValid.asStateFlow()
 
-    private val _searchErrorFlow = MutableSharedFlow<String>()
+    private val _searchErrorFlow = MutableSharedFlow<LrclibApiHelper.Error>()
 
     /** Carries errors related search job*/
-    val searchErrorFlow: SharedFlow<String> = _searchErrorFlow
+    val searchErrorFlow: SharedFlow<LrclibApiHelper.Error> = _searchErrorFlow
 
     private var _searchResult = MutableSharedFlow<List<Lyrics>>()
 
@@ -116,7 +116,7 @@ class MainActivityViewModel : ViewModel() {
         }
         searchJob?.invokeOnCompletion {
             if (searchJob?.isCancelled == true) {
-                emitSearchError("Cancelled")
+                emitSearchError(LrclibApiHelper.Error.CANCELLED)
             }
             emitSearchStatus(false)
             Log.d(TAG, "performSearch: search job ended")
@@ -128,8 +128,8 @@ class MainActivityViewModel : ViewModel() {
         _isSearching.update { isSearching }
     }
 
-    private fun emitSearchError(errMsg: String) {
-        viewModelScope.launch { _searchErrorFlow.emit(errMsg) }
+    private fun emitSearchError(error: LrclibApiHelper.Error) {
+        viewModelScope.launch { _searchErrorFlow.emit(error) }
     }
 
     private fun emitSearchResult(result: List<Lyrics>) {

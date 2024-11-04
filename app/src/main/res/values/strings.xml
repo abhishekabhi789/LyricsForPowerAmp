@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Lyrics for PowerAmp</string>
     <!--    general-->
-    <string name="error">Error</string>
+    <string name="error">Error occurred</string>
     <string name="plain_lyrics">Plain Lyrics</string>
     <string name="synced_lyrics">Synced Lyrics</string>
     <string name="plain_lyrics_short">Plain</string>
@@ -70,8 +70,18 @@
     <string name="making_network_requests">Making network requests</string>
     <string name="timeout_cancelled">Timeout cancelled</string>
     <string name="notification_get_failed_trying_search">Trying to perform search method</string>
-    <string name="sent">sent</string>
+    <string name="sent">Sent</string>
     <string name="failed_to_send">Failed to send</string>
     <string name="notification_manual_search_suggestion">Tap here to manually search</string>
     <string name="request_handling_notification_title">Handling Request for</string>
+    <!--    Api Errors-->
+    <string name="error_cancelled">Cancelled</string>
+    <string name="error_empty_response">Empty Response</string>
+    <string name="error_network">Failed, Network Error</string>
+    <string name="error_timeout">Timed Out</string>
+    <string name="error_exception">Failed, Exception occurred</string>
+    <string name="error_no_track_name">Track name cannot be empty</string>
+    <string name="error_preparing_url">Failed to prepare request URL</string>
+    <string name="error_no_results">No result found</string>
+    <string name="error_processing_error">Error processing response</string>
 </resources>
