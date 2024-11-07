@@ -24,17 +24,17 @@ class LyricsRequestReceiver : BroadcastReceiver() {
 
     private var realId = PowerampAPI.NO_ID
     private lateinit var mContext: Context
-    private lateinit var lrclibApiHelper: LrclibApiHelper
-    private lateinit var notificationHelper: NotificationHelper
-    private lateinit var track: Track
+    private lateinit var mLrclibApiHelper: LrclibApiHelper
+    private lateinit var mNotificationHelper: NotificationHelper
+    private lateinit var mTrack: Track
 
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context != null && intent != null) {
-            this.mContext = context
-            lrclibApiHelper = LrclibApiHelper(HttpClient.okHttpClient)
+            mContext = context
+            mLrclibApiHelper = LrclibApiHelper(HttpClient.okHttpClient)
             when (intent.action) {
                 PowerampAPI.Lyrics.ACTION_NEED_LYRICS -> {
-                    notificationHelper = NotificationHelper(context)
+                    mNotificationHelper = NotificationHelper(context)
                     handleLyricsRequest(intent)
                 }
             }
@@ -47,18 +47,20 @@ class LyricsRequestReceiver : BroadcastReceiver() {
     ) {
         notify(content = mContext.getString(R.string.preparing_search_track))
         realId = intent.getLongExtra(PowerampAPI.Track.REAL_ID, PowerampAPI.NO_ID)
-        track = PowerampApiHelper.makeTrack(mContext, intent)
-        Log.i(TAG, "handleLyricsRequest: request for $track")
-        notify(content = mContext.getString(R.string.making_network_requests))
+        mTrack = PowerampApiHelper.makeTrack(mContext, intent)
+        Log.i(TAG, "handleLyricsRequest: request for $mTrack")
+
         val job = CoroutineScope(dispatcher).launch {
             withTimeoutOrNull(POWERAMP_LYRICS_REQUEST_WAIT_TIMEOUT) {
                 getLyrics(
-                    track = track,
+                    track = mTrack,
                     dispatcher = dispatcher,
                     onSuccess = {
                         notify(mContext.getString(R.string.sending_lyrics))
-                        sendLyrics(it)
-                        notificationHelper.cancelNotification()
+                        sendLyrics(it).also { success ->
+                            if (success) mNotificationHelper.cancelNotification()
+                            else suggestManualSearch()
+                        }
                     },
                     onError = {
                         notify(mContext.getString(it.errMsg) + " ${it.moreInfo}")
@@ -72,7 +74,7 @@ class LyricsRequestReceiver : BroadcastReceiver() {
         job.invokeOnCompletion {
             if (job.isCancelled) {
                 notify(mContext.getString(R.string.timeout_cancelled))
-                Log.d(TAG, "handleLyricsRequest: timeout cancelled")
+                Log.i(TAG, "handleLyricsRequest: timeout cancelled")
                 sendLyricResponse(mContext, realId, lyrics = null)
             }
             Log.i(TAG, "handleLyricsRequest: network request completed")
@@ -87,17 +89,18 @@ class LyricsRequestReceiver : BroadcastReceiver() {
     ) {
         val useFallbackMethod = AppPreference.getSearchIfGetFailed(mContext)
         Log.i(TAG, "getLyrics: fallback to search permitted- $useFallbackMethod")
-        lrclibApiHelper.getLyricsForTracks(
+        notify(content = mContext.getString(R.string.performing_get_method))
+        mLrclibApiHelper.getLyricsForTracks(
             track = track,
             dispatcher = dispatcher,
             onResult = onSuccess,
             onError = { error ->
                 Log.e(TAG, "getLyrics: get request failed $error")
                 if (useFallbackMethod && error == LrclibApiHelper.Error.NO_RESULTS) {
-                    notify(mContext.getString(R.string.notification_get_failed_trying_search))
+                    notify(mContext.getString(R.string.performing_search_method))
                     Log.i(TAG, "getLyrics: trying with search method")
                     CoroutineScope(dispatcher).launch {
-                        lrclibApiHelper.searchLyricsForTrack(
+                        mLrclibApiHelper.searchLyricsForTrack(
                             query = track,
                             dispatcher = dispatcher,
                             onResult = { onSuccess(it.first()) },
@@ -120,18 +123,21 @@ class LyricsRequestReceiver : BroadcastReceiver() {
     }
 
     private fun suggestManualSearch() {
-        notify(mContext.getString(R.string.notification_manual_search_suggestion), track)
+        notify(mContext.getString(R.string.notification_manual_search_suggestion))
     }
 
-    private fun notify(content: String, data: Track? = null) {
+    private fun notify(content: String) {
         val titleString = mContext.getString(R.string.request_handling_notification_title)
-        val (title, subText) = if (::track.isInitialized) {
-            Pair(
-                "$titleString - ${track.trackName}",
-                "${mContext.getString(R.string.track)}: ${track.trackName}"
+        if (::mTrack.isInitialized) {
+            val (title, subText) = Pair(
+                "$titleString - ${mTrack.trackName}",
+                "${mContext.getString(R.string.track)}: ${mTrack.trackName}"
             )
-        } else Pair(titleString, null)
-        notificationHelper.makeNotification(title, content, subText, data)
+            mNotificationHelper.makeNotification(title, content, subText, mTrack)
+        } else {
+            val (title, subText) = Pair(titleString, null)
+            mNotificationHelper.makeNotification(title, content, subText)
+        }
     }
 
     companion object {

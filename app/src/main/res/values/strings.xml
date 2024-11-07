@@ -67,9 +67,9 @@
     <!--    notifications-->
     <string name="lyrics_request_handling_notifications">Lyrics Request Handling Notifications</string>
     <string name="preparing_search_track">Preparing search track</string>
-    <string name="making_network_requests">Making network requests</string>
+    <string name="performing_get_method">Getting lyrics</string>
     <string name="timeout_cancelled">Timeout cancelled</string>
-    <string name="notification_get_failed_trying_search">Trying to perform search method</string>
+    <string name="performing_search_method">Searching for lyrics</string>
     <string name="sent">Sent</string>
     <string name="failed_to_send">Failed to send</string>
     <string name="notification_manual_search_suggestion">Tap here to manually search</string>
