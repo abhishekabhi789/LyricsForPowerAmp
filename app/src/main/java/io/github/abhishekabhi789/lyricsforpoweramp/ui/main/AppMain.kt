@@ -63,7 +63,7 @@ fun AppMain(modifier: Modifier = Modifier, viewModel: MainActivityViewModel) {
                 putParcelableArrayListExtra(SearchResultActivity.KEY_RESULT, ArrayList(result))
                 putExtra(SearchResultActivity.KEY_APP_THEME, viewModel.appTheme.value)
                 putExtra(
-                    SearchResultActivity.KEY_POWERAMP_ID,
+                    SearchResultActivity.KEY_POWERAMP_REAL_ID,
                     viewModel.inputState.value.queryTrack.realId
                 )
             }

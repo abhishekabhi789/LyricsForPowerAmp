@@ -16,7 +16,7 @@ class SearchResultViewmodel : ViewModel() {
     /** Search results as [List]<[Lyrics]>*/
     val searchResults = _searchResults.asStateFlow()
 
-    private var powerampId: Long? = null
+    var powerampId: Long? = null
 
     fun setSearchResults(list: List<Lyrics>) {
         _searchResults.update { list }

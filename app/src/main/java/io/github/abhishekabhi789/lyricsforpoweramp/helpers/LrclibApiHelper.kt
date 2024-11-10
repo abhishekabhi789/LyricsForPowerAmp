@@ -41,7 +41,7 @@ class LrclibApiHelper(private val client: OkHttpClient) {
         try {
             val httpUrl = (API_BASE_URL + params).toHttpUrlOrNull()
             if (httpUrl != null) {
-                val request = Request.Builder().apply {
+                val request = Request.Builder().run {
                     url(httpUrl)
                     header(
                         "User-Agent",
@@ -53,7 +53,8 @@ class LrclibApiHelper(private val client: OkHttpClient) {
                         })
                     header("Content-Type", "application/json")
                     get()
-                }.build()
+                    build()
+                }
                 val result = withContext(dispatcher) {
                     suspendCancellableCoroutine { continuation ->
                         val call = client.newCall(request)
