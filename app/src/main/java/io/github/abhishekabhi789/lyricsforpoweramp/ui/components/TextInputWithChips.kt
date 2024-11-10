@@ -68,7 +68,7 @@ fun TextInputWithChips(
     }
     var isFocused by rememberSaveable { mutableStateOf(false) }
     val sizeScale by animateFloatAsState(
-        if (isFocused) 1.025f else 1f,
+        targetValue = if (isFocused) 1.025f else 1f,
         label = "searchButtonAnimation"
     )
     val color = MaterialTheme.colorScheme.let { if (isFocused) it.primary else it.outline }

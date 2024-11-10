@@ -40,14 +40,15 @@ class SearchResultActivity : ComponentActivity() {
         }
         val appTheme: AppPreference.AppTheme = getSerializableExtra(intent, KEY_APP_THEME)
             ?: AppPreference.AppTheme.Light // set light as default
-        val powerampId: Long? = getSerializableExtra(intent, KEY_POWERAMP_ID)
+        val realId: Long? = getSerializableExtra(intent, KEY_POWERAMP_REAL_ID)
 
         setContent {
             val scope = rememberCoroutineScope()
             val viewmodel: SearchResultViewmodel = viewModel()
             searchResult?.let { viewmodel.setSearchResults(it) }
+            realId?.let { viewmodel.setPowerampId(it) }
             val lyricsList by viewmodel.searchResults.collectAsState()
-            powerampId?.let { viewmodel.setPowerampId(it) }
+            val powerampId: Long? = viewmodel.powerampId
             LyricsForPowerAmpTheme(useDarkTheme = AppPreference.isDarkTheme(theme = appTheme)) {
                 val snackbarHostState = remember { SnackbarHostState() }
                 Surface(
@@ -130,6 +131,6 @@ class SearchResultActivity : ComponentActivity() {
         private const val TAG = "SearchResultActivity"
         const val KEY_RESULT = "search_result"
         const val KEY_APP_THEME = "app_theme"
-        const val KEY_POWERAMP_ID = "poweramp_id"
+        const val KEY_POWERAMP_REAL_ID = "poweramp_id"
     }
 }

@@ -49,53 +49,55 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             viewModel = viewModel()
-            /* should not ask from here if user disabled notifications from settings*/
-            val shouldAskForNotificationPermission = rememberSaveable {
-                AppPreference.getShowNotification(this@MainActivity)
-            }
-            val permissionState = rememberPermissionState(
-                permission = Manifest.permission.POST_NOTIFICATIONS
-            ) { isGranted ->
-                @StringRes val message = if (isGranted) R.string.settings_permission_toast_graned
-                else R.string.settings_permission_toast_denied
-                Toast(this@MainActivity).apply {
-                    setText(message)
-                    setDuration(Toast.LENGTH_SHORT)
-                }.show()
-            }
-            var showPermissionDialog by rememberSaveable { mutableStateOf(!permissionState.status.isGranted) }
-            if (shouldAskForNotificationPermission && showPermissionDialog) {
-                PermissionDialog(
-                    allowDisabling = true,
-                    onConfirm = {
-                        showPermissionDialog = false
-                        if (permissionState.status.shouldShowRationale) {
-                            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                            }
-                            startActivity(intent)
-                        } else {
-                            permissionState.launchPermissionRequest()
-                        }
-                    },
-                    onDismiss = { disableNotification ->
-                        if (disableNotification) {
-                            AppPreference.setShowNotification(this@MainActivity, false)
-                            Toast(this@MainActivity).apply {
-                                setText(R.string.settings_permission_toast_notification_disabled)
-                                setDuration(Toast.LENGTH_SHORT)
-                            }.show()
-                        }
-                        showPermissionDialog = false
-                    }
-                )
-            }
             LaunchedEffect(Unit) {
                 viewModel.updateTheme(AppPreference.getTheme(this@MainActivity))
             }
             val appTheme by viewModel.appTheme.collectAsState()
             LyricsForPowerAmpTheme(useDarkTheme = AppPreference.isDarkTheme(theme = appTheme)) {
+                /* should not ask from here if user disabled notifications from settings*/
+                val shouldAskForNotificationPermission = rememberSaveable {
+                    AppPreference.getShowNotification(this@MainActivity)
+                }
+                val permissionState = rememberPermissionState(
+                    permission = Manifest.permission.POST_NOTIFICATIONS
+                ) { isGranted ->
+                    @StringRes val message =
+                        if (isGranted) R.string.settings_permission_toast_graned
+                        else R.string.settings_permission_toast_denied
+                    Toast(this@MainActivity).apply {
+                        setText(message)
+                        setDuration(Toast.LENGTH_SHORT)
+                    }.show()
+                }
+                var showPermissionDialog by rememberSaveable { mutableStateOf(!permissionState.status.isGranted) }
+                if (shouldAskForNotificationPermission && showPermissionDialog) {
+                    PermissionDialog(
+                        allowDisabling = true,
+                        onConfirm = {
+                            showPermissionDialog = false
+                            if (permissionState.status.shouldShowRationale) {
+                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).run {
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                                    startActivity(this)
+                                }
+                            } else {
+                                permissionState.launchPermissionRequest()
+                            }
+                        },
+                        onDismiss = { disableNotification ->
+                            if (disableNotification) {
+                                AppPreference.setShowNotification(this@MainActivity, false)
+                                Toast(this@MainActivity).run {
+                                    setText(R.string.settings_permission_toast_notification_disabled)
+                                    setDuration(Toast.LENGTH_SHORT)
+                                    show()
+                                }
+                            }
+                            showPermissionDialog = false
+                        }
+                    )
+                }
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.tertiaryContainer,
