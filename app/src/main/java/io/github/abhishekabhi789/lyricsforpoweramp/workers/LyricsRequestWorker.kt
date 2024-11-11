@@ -23,6 +23,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 class LyricsRequestWorker(context: Context, workerParams: WorkerParameters) :
     Worker(context, workerParams) {
+
     private val mContext = applicationContext
     private var mLrclibApiHelper = LrclibApiHelper(HttpClient.okHttpClient)
     private lateinit var mNotificationHelper: NotificationHelper
@@ -63,9 +64,9 @@ class LyricsRequestWorker(context: Context, workerParams: WorkerParameters) :
                             result = Result.success()
                         }
                     },
-                    onError = {
-                        notify(mContext.getString(it.errMsg) + " ${it.moreInfo}")
-                        Log.e(TAG, "handleLyricsRequest: $it")
+                    onError = { error ->
+                        notify(mContext.getString(error.errMsg) + error.moreInfo?.let { " $it" })
+                        Log.e(TAG, "handleLyricsRequest: $error")
                         suggestManualSearch()
                         result = Result.failure()
                     },
@@ -74,7 +75,7 @@ class LyricsRequestWorker(context: Context, workerParams: WorkerParameters) :
             result
         } ?: run {
             notify(mContext.getString(R.string.timeout_cancelled))
-            Log.i(TAG, "handleLyricsRequest: timeout cancelled")
+            Log.e(TAG, "handleLyricsRequest: timeout cancelled")
             Result.retry()
         }
     }
@@ -86,10 +87,7 @@ class LyricsRequestWorker(context: Context, workerParams: WorkerParameters) :
         onError: (LrclibApiHelper.Error) -> Unit
     ) {
         val useFallbackMethod = AppPreference.getSearchIfGetFailed(mContext)
-        Log.i(
-            TAG,
-            "getLyrics: fallback to search permitted- $useFallbackMethod"
-        )
+        Log.i(TAG, "getLyrics: fallback to search permitted- $useFallbackMethod")
         notify(content = mContext.getString(R.string.performing_get_method))
         mLrclibApiHelper.getLyricsForTracks(
             track = track,
@@ -142,9 +140,9 @@ class LyricsRequestWorker(context: Context, workerParams: WorkerParameters) :
     }
 
     companion object {
-        private const val TAG = "LyricsRequestService"
+        private const val TAG = "LyricsRequestWorker"
         const val MANUAL_SEARCH_ACTION =
             "io.github.abhishekabhi789.lyricsforpoweramp.MANUAL_SEARCH_ACTION"
-        const val POWERAMP_LYRICS_REQUEST_WAIT_TIMEOUT = 30_000L
+        const val POWERAMP_LYRICS_REQUEST_WAIT_TIMEOUT = 10_000L
     }
 }

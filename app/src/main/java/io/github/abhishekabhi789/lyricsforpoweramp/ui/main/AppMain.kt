@@ -48,7 +48,10 @@ fun AppMain(modifier: Modifier = Modifier, viewModel: MainActivityViewModel) {
             keyboardController?.hide()
             scope.launch {
                 when (snackbarHostState.showSnackbar(
-                    message = "${context.getString(errMsg.errMsg)} ${errMsg.moreInfo}",
+                    message = listOfNotNull(
+                        context.getString(errMsg.errMsg),
+                        errMsg.moreInfo
+                    ).joinToString(" "),
                     withDismissAction = true
                 )) {
                     SnackbarResult.Dismissed -> keyboardController?.show()
