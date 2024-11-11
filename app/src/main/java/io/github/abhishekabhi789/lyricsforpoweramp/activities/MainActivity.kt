@@ -30,12 +30,12 @@ import com.maxmpz.poweramp.player.PowerampAPI
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.helpers.PowerampApiHelper
 import io.github.abhishekabhi789.lyricsforpoweramp.model.InputState
-import io.github.abhishekabhi789.lyricsforpoweramp.receivers.LyricsRequestReceiver
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.components.PermissionDialog
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.main.AppMain
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.theme.LyricsForPowerAmpTheme
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
 import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.MainActivityViewModel
+import io.github.abhishekabhi789.lyricsforpoweramp.workers.LyricsRequestWorker.Companion.MANUAL_SEARCH_ACTION
 
 class MainActivity : ComponentActivity() {
     private lateinit var viewModel: MainActivityViewModel
@@ -103,7 +103,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.tertiaryContainer,
                 ) {
                     when (intent?.action) {
-                        PowerampAPI.Lyrics.ACTION_LYRICS_LINK, LyricsRequestReceiver.MANUAL_SEARCH_ACTION -> {
+                        PowerampAPI.Lyrics.ACTION_LYRICS_LINK, MANUAL_SEARCH_ACTION -> {
                             val requestedTrack = PowerampApiHelper.makeTrack(this, intent)
                             viewModel.updateInputState(
                                 InputState(

@@ -13,8 +13,8 @@ import com.maxmpz.poweramp.player.PowerampAPI
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.activities.MainActivity
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
-import io.github.abhishekabhi789.lyricsforpoweramp.receivers.LyricsRequestReceiver
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
+import io.github.abhishekabhi789.lyricsforpoweramp.workers.LyricsRequestWorker.Companion.MANUAL_SEARCH_ACTION
 import java.util.UUID
 
 class NotificationHelper(private val context: Context) {
@@ -59,7 +59,7 @@ class NotificationHelper(private val context: Context) {
         Log.d(TAG, "makeNotification: $content")
         val pendingIntent = if (track != null) {
             val intent = Intent(context, MainActivity::class.java).apply {
-                action = LyricsRequestReceiver.MANUAL_SEARCH_ACTION
+                action = MANUAL_SEARCH_ACTION
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 putExtra(PowerampAPI.Track.REAL_ID, track.realId)
                 putExtra(PowerampAPI.Track.TITLE, track.trackName)
