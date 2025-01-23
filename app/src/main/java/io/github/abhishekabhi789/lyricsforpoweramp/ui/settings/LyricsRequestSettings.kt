@@ -36,6 +36,7 @@ import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import io.github.abhishekabhi789.lyricsforpoweramp.R
+import io.github.abhishekabhi789.lyricsforpoweramp.model.LyricsType
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.components.PermissionDialog
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
 
@@ -161,6 +162,27 @@ fun LyricsRequestSettings(modifier: Modifier = Modifier) {
                     modifier = Modifier.padding(start = 4.dp)
                 )
             }
+        }
+
+        BasicSettings(
+            label = stringResource(R.string.settings_preferred_lyrics_type_label),
+            description = stringResource(R.string.settings_preferred_lyrics_type_description)
+        ) {
+            var expanded by remember { mutableStateOf(false) }
+            var preferredLyricsType by remember {
+                mutableStateOf(AppPreference.getPreferredLyricsType(context))
+            }
+            DropdownSettings(
+                expanded = expanded,
+                currentValue = preferredLyricsType,
+                values = LyricsType.entries,
+                onSelection = {
+                    preferredLyricsType = it
+                    AppPreference.setPreferredLyricsType(context, it)
+                },
+                onExpandedChanged = { expanded = it },
+                getLabel = { stringResource(it.label) }
+            )
         }
     }
 }

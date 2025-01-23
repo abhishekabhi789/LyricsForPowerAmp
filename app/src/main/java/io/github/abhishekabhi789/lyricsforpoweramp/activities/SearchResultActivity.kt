@@ -22,6 +22,7 @@ import androidx.core.os.BundleCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
+import io.github.abhishekabhi789.lyricsforpoweramp.model.LyricsType
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.searchresult.ResultScreen
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.theme.LyricsForPowerAmpTheme
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
@@ -59,12 +60,13 @@ class SearchResultActivity : ComponentActivity() {
                         result = lyricsList,
                         snackbarHostState = snackbarHostState,
                         launchedFromPoweramp = powerampId != null,
-                        onLyricChosen = { lyrics ->
+                        onLyricChosen = { lyrics, lyricsType ->
                             scope.launch {
                                 sendLyrics(
                                     viewmodel = viewmodel,
                                     snackbarHostState = snackbarHostState,
-                                    chosenLyrics = lyrics
+                                    lyrics = lyrics,
+                                    lyricsType = lyricsType
                                 ) {
                                     finishAffinity()
                                 }
@@ -80,10 +82,15 @@ class SearchResultActivity : ComponentActivity() {
     private suspend fun sendLyrics(
         viewmodel: SearchResultViewmodel,
         snackbarHostState: SnackbarHostState,
-        chosenLyrics: Lyrics, onComplete: () -> Unit
+        lyrics: Lyrics,
+        lyricsType: LyricsType? = null,
+        onComplete: () -> Unit
     ) {
         withContext(Dispatchers.Main) {
-            val sent = viewmodel.sendLyricsToPoweramp(applicationContext, chosenLyrics)
+            val chosenLyricsType = lyricsType
+                ?: AppPreference.getPreferredLyricsType(this@SearchResultActivity)
+            val sent =
+                viewmodel.sendLyricsToPoweramp(applicationContext, lyrics, chosenLyricsType)
             if (sent) {
                 Log.d(TAG, "sendLyrics: sent")
                 when (snackbarHostState.showSnackbar(
@@ -103,10 +110,11 @@ class SearchResultActivity : ComponentActivity() {
                     duration = SnackbarDuration.Short
                 )) {
                     SnackbarResult.ActionPerformed -> sendLyrics(
-                        viewmodel,
-                        snackbarHostState,
-                        chosenLyrics,
-                        onComplete
+                        viewmodel = viewmodel,
+                        snackbarHostState = snackbarHostState,
+                        lyrics = lyrics,
+                        lyricsType = lyricsType,
+                        onComplete = onComplete
                     )
 
                     SnackbarResult.Dismissed -> onComplete()

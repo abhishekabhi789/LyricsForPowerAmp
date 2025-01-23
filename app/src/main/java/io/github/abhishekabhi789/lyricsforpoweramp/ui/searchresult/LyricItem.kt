@@ -4,6 +4,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,29 +12,37 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.outlined.Album
 import androidx.compose.material.icons.outlined.Audiotrack
 import androidx.compose.material.icons.outlined.InterpreterMode
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -41,18 +50,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
+import io.github.abhishekabhi789.lyricsforpoweramp.model.LyricsType
 import io.github.abhishekabhi789.lyricsforpoweramp.ui.components.CustomChip
+import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -62,18 +76,14 @@ fun LyricItem(
     modifier: Modifier = Modifier,
     lyrics: Lyrics,
     isLaunchedFromPowerAmp: Boolean,
-    onLyricChosen: (Lyrics) -> Unit
+    onLyricChosen: (Lyrics, preferredLyricsType: LyricsType) -> Unit
 ) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val lyricPages = remember { listOfNotNull(lyrics.plainLyrics, lyrics.syncedLyrics) }
     val pagerState = rememberPagerState(pageCount = { lyricPages.size }, initialPage = 0)
     var expanded by remember { mutableStateOf(false) }
-    val showExpandIcon by remember {
-        derivedStateOf {
-            if (pagerState.isScrollInProgress) pagerState.targetPage == pagerState.currentPage
-            else true
-        }
-    }
+
     ElevatedCard(modifier = modifier) {
         Column(
             verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -102,19 +112,19 @@ fun LyricItem(
                     )
                 }
                 if (isLaunchedFromPowerAmp) {
-                    FilledTonalIconButton(
-                        colors = IconButtonDefaults.filledTonalIconButtonColors()
-                            .copy(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            ),
-                        onClick = { onLyricChosen(lyrics) }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Done,
-                            contentDescription = stringResource(R.string.choose_lyrics_button_description),
-                        )
+                    var preferredLyricsType by rememberSaveable {
+                        mutableStateOf(AppPreference.getPreferredLyricsType(context))
                     }
+                    val availableLyrics = buildList {
+                        if (!lyrics.syncedLyrics.isNullOrBlank()) add(LyricsType.SYNCED)
+                        if (!lyrics.plainLyrics.isNullOrBlank()) add(LyricsType.PLAIN)
+                    }
+                    val chosenType by remember { derivedStateOf { if (preferredLyricsType in availableLyrics) preferredLyricsType else availableLyrics.first() } }
+                    SendLyricsButton(
+                        availableLyricsTypes = availableLyrics,
+                        chosenType = chosenType,
+                        onTypeChanged = { preferredLyricsType = it }
+                    ) { onLyricChosen(lyrics, preferredLyricsType) }
                 }
             }
             Row(
@@ -227,12 +237,79 @@ fun LyricItem(
                     .graphicsLayer {
                         translationY = -60 * abs(pagerState.currentPageOffsetFraction)
                         rotationZ = rotationAnimation.value
-                        alpha = abs(1 - (pagerState.currentPageOffsetFraction * 2))
+                        alpha =
+                            abs(1 - abs(pagerState.currentPageOffsetFraction * 2)).coerceIn(0f, 1f)
                     }
                     .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
 
             )
 
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SendLyricsButton(
+    modifier: Modifier = Modifier,
+    availableLyricsTypes: List<LyricsType>,
+    chosenType: LyricsType,
+    onTypeChanged: (LyricsType) -> Unit,
+    onSend: () -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Surface(
+        onClick = onSend,
+        shape = AssistChipDefaults.shape,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(4.dp)) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.padding(4.dp))
+            Text(
+                text = stringResource(chosenType.label),
+                textAlign = TextAlign.End,
+                color = MaterialTheme.colorScheme.primary
+            )
+            ExposedDropdownMenuBox(
+                modifier = modifier,
+                expanded = expanded,
+                onExpandedChange = { expanded = it }
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                ) {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                }
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.width(IntrinsicSize.Max)
+                ) {
+                    availableLyricsTypes.forEach { value ->
+                        DropdownMenuItem(
+                            text = { Text(text = stringResource(value.label)) },
+                            colors = MenuDefaults.itemColors()
+                                .copy(
+                                    textColor = if (value == chosenType)
+                                        MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                                ),
+                            onClick = {
+                                onTypeChanged(value)
+                                expanded = false
+                            },
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -248,5 +325,5 @@ fun PreviewLyricItem() {
         plainLyrics = "1 Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n Nunc sit amet turpis et odio egestas finibus vel quis nisi.\n Duis aliquam tortor non dui tempor, et sodales orci tempus.\n Mauris fermentum mauris quis commodo viverra.\n Suspendisse scelerisque lorem eu dolor fringilla ultrices.\n Suspendisse scelerisque lorem eu dolor fringilla ultrices.\n Suspendisse scelerisque lorem eu dolor fringilla ultrices.",
         syncedLyrics = "[00:10.00] 1 Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n [00:20.10] Nunc sit amet turpis et odio egestas finibus vel quis nisi.\n [00:30.20] Duis aliquam tortor non dui tempor, et sodales orci tempus.\n [00:40.30] Mauris fermentum mauris quis commodo viverra.\n [00:50.40] Suspendisse scelerisque lorem eu dolor fringilla ultrices.\n [01:00.50] Suspendisse scelerisque lorem eu dolor fringilla ultrices.\n [01:10.00] Suspendisse scelerisque lorem eu dolor fringilla ultrices."
     )
-    LyricItem(lyrics = data, isLaunchedFromPowerAmp = true, onLyricChosen = {})
+    LyricItem(lyrics = data, isLaunchedFromPowerAmp = true, onLyricChosen = { _, _ -> })
 }

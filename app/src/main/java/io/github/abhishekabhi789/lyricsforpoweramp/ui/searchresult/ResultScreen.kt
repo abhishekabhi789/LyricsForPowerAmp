@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
+import io.github.abhishekabhi789.lyricsforpoweramp.model.LyricsType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +35,7 @@ fun ResultScreen(
     result: List<Lyrics>,
     snackbarHostState: SnackbarHostState,
     launchedFromPoweramp: Boolean = false,
-    onLyricChosen: (Lyrics) -> Unit,
+    onLyricChosen: (Lyrics, lyricsType: LyricsType) -> Unit,
     onBack: () -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()

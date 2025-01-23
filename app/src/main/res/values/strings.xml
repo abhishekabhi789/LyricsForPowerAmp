@@ -28,7 +28,8 @@
     <string name="search">Search</string>
     <!--    lyrics result-->
     <string name="result_topbar_title">Results</string>
-    <string name="choose_lyrics_button_description">Choose this lyrics</string>
+    <string name="send_lyrics_button">Send this lyrics</string>
+    <string name="change_preferred_lyrics_type">change preferred lyrics type</string>
     <string name="sending_lyrics">Sending lyrics to PowerAmp</string>
     <string name="snackbar_failed_to_send_lyrics">Failed to send lyrics</string>
     <string name="snackbar_retry_sending_lyrics">Retry</string>
@@ -57,6 +58,8 @@
     <string name="settings_request_fail_notification_description">Get notified when lyrics retrieval fails. Allows manual search.</string>
     <string name="settings_overwrite_existing_notification_label">Replace Previous Notification</string>
     <string name="settings_overwrite_existing_notification_description">A new notification will replace the previous one.</string>
+    <string name="settings_preferred_lyrics_type_label">Preferred Lyrics Type</string>
+    <string name="settings_preferred_lyrics_type_description">Set a default preference for synced or plain lyrics.</string>
     <string name="settings_filter_label">Filters</string>
     <string name="settings_filter_description">These words will be removed from respective fields while processing. Case insensitive. Supports regex.</string>
     <string name="settings_filter_title_label">Title Filter</string>

@@ -7,6 +7,7 @@ import com.maxmpz.poweramp.player.PowerampAPI
 import com.maxmpz.poweramp.player.PowerampAPIHelper
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
+import io.github.abhishekabhi789.lyricsforpoweramp.model.LyricsType
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference
 import io.github.abhishekabhi789.lyricsforpoweramp.utils.AppPreference.FILTER
@@ -71,11 +72,18 @@ object PowerampApiHelper {
         context: Context,
         realId: Long,
         lyrics: Lyrics?,
+        lyricsType: LyricsType,
     ): Boolean {
         val infoLine = makeInfoLine(context, lyrics)
         val intent = Intent(PowerampAPI.Lyrics.ACTION_UPDATE_LYRICS).apply {
             putExtra(PowerampAPI.EXTRA_ID, realId)
-            putExtra(PowerampAPI.Lyrics.EXTRA_LYRICS, lyrics?.syncedLyrics ?: lyrics?.plainLyrics)
+            putExtra(
+                PowerampAPI.Lyrics.EXTRA_LYRICS,
+                when (lyricsType) {
+                    LyricsType.PLAIN -> lyrics?.plainLyrics ?: lyrics?.syncedLyrics
+                    LyricsType.SYNCED -> lyrics?.syncedLyrics ?: lyrics?.plainLyrics
+                }
+            )
             putExtra(PowerampAPI.Lyrics.EXTRA_INFO_LINE, infoLine)
         }
 

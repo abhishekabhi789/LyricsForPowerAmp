@@ -7,7 +7,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import io.github.abhishekabhi789.lyricsforpoweramp.R
-import io.github.abhishekabhi789.lyricsforpoweramp.viewmodels.MainActivityViewModel
+import io.github.abhishekabhi789.lyricsforpoweramp.model.LyricsType
 
 object AppPreference {
     private const val FILTER_PREF_NAME = "filter_preference"
@@ -17,6 +17,7 @@ object AppPreference {
     private const val SEARCH_IF_GET_FAILED = "perform_search_if_get_failed"
     private const val SHOW_LYRICS_REQUEST_NOTIFICATION = "lyrics_requests_show_notification"
     private const val OVERWRITE_NOTIFICATION = "lyrics_requests_overwrite_existing_notification"
+    private const val PREFERRED_LYRICS_TYPE = "preferred_lyrics_type"
 
     private fun getSharedPreference(context: Context, prefName: String): SharedPreferences? {
         return context.getSharedPreferences(prefName, Context.MODE_PRIVATE)
@@ -45,10 +46,9 @@ object AppPreference {
         else listOf(AppTheme.Light, AppTheme.Dark)
     }
 
-    fun setTheme(context: Context, theme: AppTheme, viewModel: MainActivityViewModel) {
+    fun setTheme(context: Context, theme: AppTheme) {
         val sharedPreferences = getSharedPreference(context, UI_PREF_NAME)
         sharedPreferences?.edit()?.putString(UI_THEME_KEY, theme.name)?.apply()
-        viewModel.updateTheme(theme)
     }
 
     fun getSearchIfGetFailed(context: Context): Boolean {
@@ -79,6 +79,19 @@ object AppPreference {
     fun setOverwriteNotification(context: Context, choice: Boolean) {
         val sharedPreferences = getSharedPreference(context, OTHER_PREF)
         sharedPreferences?.edit()?.putBoolean(OVERWRITE_NOTIFICATION, choice)?.apply()
+    }
+
+    fun getPreferredLyricsType(context: Context): LyricsType {
+        val sharedPreferences = getSharedPreference(context, OTHER_PREF)
+        val defaultType = LyricsType.SYNCED
+        val preferredType =
+            sharedPreferences?.getString(PREFERRED_LYRICS_TYPE, defaultType.name)
+        return LyricsType.valueOf(preferredType ?: defaultType.name)
+    }
+
+    fun setPreferredLyricsType(context: Context, type: LyricsType) {
+        val sharedPreferences = getSharedPreference(context, OTHER_PREF)
+        sharedPreferences?.edit()?.putString(PREFERRED_LYRICS_TYPE, type.name)?.apply()
     }
 
     @Composable
