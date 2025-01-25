@@ -7,7 +7,6 @@ import io.github.abhishekabhi789.lyricsforpoweramp.BuildConfig
 import io.github.abhishekabhi789.lyricsforpoweramp.R
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Lyrics
 import io.github.abhishekabhi789.lyricsforpoweramp.model.Track
-import io.github.abhishekabhi789.lyricsforpoweramp.ui.main.GITHUB_REPO_URL
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -49,7 +48,7 @@ class LrclibApiHelper(private val client: OkHttpClient) {
                             append(BuildConfig.APPLICATION_ID)
                             append("-${BuildConfig.BUILD_TYPE}")
                             append(" ${BuildConfig.VERSION_NAME}")
-                            append(" $GITHUB_REPO_URL")
+                            append(" ${BuildConfig.GITHUB_REPO_URL}")
                         })
                     header("Content-Type", "application/json")
                     get()

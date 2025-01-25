@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.jetbrains.kotlin.compose)
     id("kotlin-parcelize")
+    id("com.google.android.gms.oss-licenses-plugin")
 }
 
 android {
@@ -19,6 +20,11 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField(
+            type = "String",
+            name = "GITHUB_REPO_URL",
+            value = "\"https://github.com/abhishekabhi789/Lyrics4PowerAmp\""
+        )
     }
 
     buildTypes {
@@ -65,6 +71,7 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.gson)
     implementation(libs.core.splashscreen)
+    implementation(libs.play.services.oss.licenses)
     implementation(libs.material3)
     implementation(libs.material.icons.extended)
     implementation(libs.kotlinx.coroutines.android)

@@ -14,8 +14,6 @@
     <string name="response_footer_text">Powered by Lyrics for PowerAmp</string>
     <!--    top bar-->
     <string name="top_bar_menu_descriptions">More Options</string>
-    <string name="top_bar_github_repo">Visit Github Repo</string>
-    <string name="top_bar_support">Support Development</string>
     <!--    search ui-->
     <string name="coarse_search">Coarse Search</string>
     <string name="fine_search">Fine Search</string>
@@ -34,6 +32,10 @@
     <string name="snackbar_failed_to_send_lyrics">Failed to send lyrics</string>
     <string name="snackbar_retry_sending_lyrics">Retry</string>
     <string name="snackbar_lyrics_sent_successfully">Lyrics Sent</string>
+    <!--    about activity-->
+    <string name="about">About</string>
+    <string name="version">Version</string>
+    <string name="third_party_licenses">Third Party Licenses</string>
     <!--    settings-->
     <string name="top_bar_settings">Settings</string>
     <string name="settings_app_theme_label">Theme</string>

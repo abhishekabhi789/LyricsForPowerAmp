@@ -4,3 +4,8 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android) apply false
     alias(libs.plugins.jetbrains.kotlin.compose) apply false
 }
+buildscript {
+    dependencies {
+        classpath(libs.oss.licenses.plugin)
+    }
+}

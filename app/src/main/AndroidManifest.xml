@@ -41,6 +41,16 @@
             android:name=".activities.SettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.AppTheme" />
+        <activity
+            android:name=".activities.AboutActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppTheme" />
+        <activity
+            android:name="com.google.android.gms.oss.licenses.OssLicensesMenuActivity"
+            android:theme="@style/Theme.AppCompat.DayNight" />
+        <activity
+            android:name="com.google.android.gms.oss.licenses.OssLicensesActivity"
+            android:theme="@style/Theme.AppCompat.DayNight" />
 
         <receiver
             android:name=".receivers.LyricsRequestReceiver"
