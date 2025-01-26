@@ -259,22 +259,24 @@ fun SendLyricsButton(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Surface(
-        onClick = onSend,
         shape = AssistChipDefaults.shape,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(4.dp)) {
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.padding(4.dp))
-            Text(
-                text = stringResource(chosenType.label),
-                textAlign = TextAlign.End,
-                color = MaterialTheme.colorScheme.primary
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { onSend() }) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = stringResource(chosenType.label),
+                    textAlign = TextAlign.End,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
             ExposedDropdownMenuBox(
                 modifier = modifier,
                 expanded = expanded,
