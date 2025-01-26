@@ -54,7 +54,7 @@ fun ResultScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.navigate_back_action),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
