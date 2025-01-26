@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Lyrics for PowerAmp</string>
+    <string name="app_name">Lyrics for Poweramp</string>
     <!--    general-->
     <string name="error">Error occurred</string>
     <string name="plain_lyrics">Plain Lyrics</string>
