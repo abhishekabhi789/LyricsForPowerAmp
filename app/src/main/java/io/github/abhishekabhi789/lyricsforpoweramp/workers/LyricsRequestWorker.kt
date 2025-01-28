@@ -1,8 +1,14 @@
 package io.github.abhishekabhi789.lyricsforpoweramp.workers
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import android.util.Log
-import androidx.work.Worker
+import androidx.core.app.NotificationCompat
+import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.maxmpz.poweramp.player.PowerampAPI
 import io.github.abhishekabhi789.lyricsforpoweramp.R
@@ -18,11 +24,10 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 
 class LyricsRequestWorker(context: Context, workerParams: WorkerParameters) :
-    Worker(context, workerParams) {
+    CoroutineWorker(context, workerParams) {
 
     private val mContext = applicationContext
     private var mLrclibApiHelper = LrclibApiHelper(HttpClient.okHttpClient)
@@ -30,7 +35,12 @@ class LyricsRequestWorker(context: Context, workerParams: WorkerParameters) :
     private lateinit var mTrack: Track
     private var powerampTrackId = PowerampAPI.NO_ID
 
-    override fun doWork(): Result {
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        val notification = createWorkerNotification()
+        return ForegroundInfo(NOTIFICATION_ID, notification)
+    }
+
+    override suspend fun doWork(): Result {
         mNotificationHelper = NotificationHelper(mContext)
         powerampTrackId = inputData.getLong(LyricsRequestReceiver.KEY_REAL_ID, PowerampAPI.NO_ID)
         mTrack = Track(
@@ -42,9 +52,7 @@ class LyricsRequestWorker(context: Context, workerParams: WorkerParameters) :
             realId = powerampTrackId
         )
         Log.i(TAG, "doWork: request for $mTrack")
-        return runBlocking {
-            handleLyricsRequest()
-        }
+        return handleLyricsRequest()
     }
 
     private suspend fun handleLyricsRequest(dispatcher: CoroutineDispatcher = Dispatchers.IO): Result {
@@ -140,10 +148,31 @@ class LyricsRequestWorker(context: Context, workerParams: WorkerParameters) :
         }
     }
 
+    private fun createWorkerNotification(): Notification {
+        val channelName = mContext.getString(R.string.lyrics_request_handling_notifications)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                WORKER_NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_DEFAULT
+            )
+            val notificationManager =
+                applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+        return NotificationCompat.Builder(applicationContext, WORKER_NOTIFICATION_CHANNEL_ID)
+            .setContentTitle(mContext.getString(R.string.lyrics_request_handling_notifications))
+            .setContentText(mContext.getString(R.string.request_handling_notification_title))
+            .setSmallIcon(R.drawable.app_icon)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
+    }
+
     companion object {
         private const val TAG = "LyricsRequestWorker"
         const val MANUAL_SEARCH_ACTION =
             "io.github.abhishekabhi789.lyricsforpoweramp.MANUAL_SEARCH_ACTION"
         const val POWERAMP_LYRICS_REQUEST_WAIT_TIMEOUT = 10_000L
+        private const val NOTIFICATION_ID = 1
+        private const val WORKER_NOTIFICATION_CHANNEL_ID = "lyrics_request_channel"
     }
 }

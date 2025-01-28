@@ -64,7 +64,7 @@ fun TextInput(
         trailingIcon = {
             if (text?.isNotEmpty() == true) {
                 Icon(imageVector = Icons.Outlined.Clear,
-                    contentDescription = stringResource(R.string.clear_input),
+                    contentDescription = stringResource(R.string.clear_field, label),
                     tint = color,
                     modifier = Modifier.clickable {
                         if (clearWithoutWarn) onValueChange("")

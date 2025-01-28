@@ -112,7 +112,10 @@ fun TextInputWithChips(
                             },
                             modifier = Modifier.size(AssistChipDefaults.IconSize)
                         ) {
-                            Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = stringResource(R.string.clear_field, chipText)
+                            )
                         }
                     },
                     colors = AssistChipDefaults.assistChipColors()
@@ -162,7 +165,7 @@ fun TextInputWithChips(
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(id = R.string.clear_input),
+                    contentDescription = stringResource(id = R.string.clear_field, fieldLabel),
                     tint = color
                 )
             }

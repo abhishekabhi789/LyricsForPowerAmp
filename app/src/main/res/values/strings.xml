@@ -17,7 +17,7 @@
     <!--    search ui-->
     <string name="coarse_search">Coarse Search</string>
     <string name="fine_search">Fine Search</string>
-    <string name="clear_input">Clear Input</string>
+    <string name="clear_field">Clear %1$s</string>
     <string name="invalid_input_error">Ensure a valid input</string>
     <string name="input_track_query_label">Query</string>
     <string name="input_track_title_label">Track Title</string>
@@ -78,7 +78,7 @@
     <string name="sent">Sent</string>
     <string name="failed_to_send">Failed to send</string>
     <string name="notification_manual_search_suggestion">Tap here to manually search</string>
-    <string name="request_handling_notification_title">Handling Request for</string>
+    <string name="request_handling_notification_title">Handling Request</string>
     <!--    Api Errors-->
     <string name="error_cancelled">Cancelled</string>
     <string name="error_empty_response">Empty Response</string>
