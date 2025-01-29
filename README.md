@@ -12,6 +12,11 @@
 A lyrics plugin for [Poweramp](https://powerampapp.com/) <br>
 </div>
 
+> [!NOTE]
+> Looking for a few testers for Google Play closed testing.  
+> If you are interested and can help, please join
+> the [Google group](https://groups.google.com/g/lyrics-for-poweramp-testers)
+
 ### :flower_playing_cards: Screenshots
 ![App Screenshots](assets/Screenshots_L4PA.png)
 
