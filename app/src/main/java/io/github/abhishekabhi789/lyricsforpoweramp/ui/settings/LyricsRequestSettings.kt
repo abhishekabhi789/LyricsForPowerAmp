@@ -30,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
@@ -94,13 +96,19 @@ fun LyricsRequestSettings(modifier: Modifier = Modifier) {
             description = stringResource(id = R.string.settings_fallback_to_search_description),
             modifier = Modifier
         ) {
+            val accessibilityLabel = (if (fallbackToSearch) stringResource(R.string.disable)
+            else stringResource(R.string.enable)).let {
+                "$it ${stringResource(R.string.settings_fallback_to_search_label)}"
+            }
             Switch(
                 checked = fallbackToSearch,
                 onCheckedChange = {
                     fallbackToSearch = it
                     AppPreference.setSearchIfGetFailed(context, it)
                 },
-                modifier = Modifier.padding(start = 4.dp)
+                modifier = Modifier
+                    .padding(start = 4.dp)
+                    .semantics { contentDescription = accessibilityLabel }
             )
         }
         var showNotification by remember {
@@ -111,13 +119,20 @@ fun LyricsRequestSettings(modifier: Modifier = Modifier) {
             description = stringResource(id = R.string.settings_request_fail_notification_description),
             modifier = Modifier
         ) {
+            val accessibilityLabel = (if (showNotification) stringResource(R.string.disable)
+            else stringResource(R.string.enable)).let {
+                "$it ${stringResource(R.string.settings_request_fail_notification_label)}"
+            }
             Switch(
                 checked = showNotification,
                 onCheckedChange = {
                     showNotification = it
                     AppPreference.setShowNotification(context, it)
                 },
-                modifier = Modifier.padding(start = 4.dp)
+                modifier = Modifier
+                    .padding(start = 4.dp)
+                    .semantics { contentDescription = accessibilityLabel }
+
             )
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -152,6 +167,11 @@ fun LyricsRequestSettings(modifier: Modifier = Modifier) {
                 description = stringResource(id = R.string.settings_overwrite_existing_notification_description),
                 modifier = Modifier.alpha(if (hasNotificationPermission) 1.0f else 0.7f)
             ) {
+                val accessibilityLabel =
+                    (if (overwriteNotification) stringResource(R.string.disable)
+                    else stringResource(R.string.enable)).let {
+                        "$it ${stringResource(R.string.settings_overwrite_existing_notification_label)}"
+                    }
                 Switch(
                     checked = overwriteNotification,
                     enabled = hasNotificationPermission,
@@ -159,7 +179,10 @@ fun LyricsRequestSettings(modifier: Modifier = Modifier) {
                         overwriteNotification = it
                         AppPreference.setOverwriteNotification(context, it)
                     },
-                    modifier = Modifier.padding(start = 4.dp)
+                    modifier = Modifier
+                        .padding(start = 4.dp)
+                        .semantics { contentDescription = accessibilityLabel }
+
                 )
             }
         }
