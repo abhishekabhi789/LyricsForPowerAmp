@@ -1,12 +1,10 @@
 package io.github.abhishekabhi789.lyricsforpoweramp.ui.main
 
 import android.content.Intent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -78,7 +76,6 @@ fun AppMain(modifier: Modifier = Modifier, viewModel: MainActivityViewModel) {
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         modifier = modifier
             .then(focusRemoverModifier)
-            .background(color = MaterialTheme.colorScheme.surface)
     ) { paddingValues ->
         SearchUi(
             viewModel = viewModel,

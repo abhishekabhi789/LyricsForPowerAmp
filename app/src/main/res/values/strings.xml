@@ -11,6 +11,8 @@
     <string name="navigate_back_action">Go Back</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="enable">Enable</string>
+    <string name="disable">Disable</string>
     <string name="response_footer_text">Powered by Lyrics for PowerAmp</string>
     <!--    top bar-->
     <string name="top_bar_menu_descriptions">More Options</string>
