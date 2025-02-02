@@ -13,9 +13,14 @@ A lyrics plugin for [Poweramp](https://powerampapp.com/) <br>
 </div>
 
 > [!NOTE]
-> Looking for a few testers for Google Play closed testing.  
-> If you are interested and can help, please join
-> the [Google group](https://groups.google.com/g/lyrics-for-poweramp-testers)
+> ## Looking for a few testers for the Google Play release
+> If you're interested and willing to help, please follow these steps:
+> 1. [Join the Google Group for testers](https://groups.google.com/g/lyrics-for-poweramp-testers) (
+     mandatory)
+> 2. [Opt into the test on Google Play](https://play.google.com/apps/testing/io.github.abhishekabhi789.lyricsforpoweramp)
+>
+> Once you've completed these steps, you can install the app from
+> the [Google Play Store](https://play.google.com/store/apps/details?id=io.github.abhishekabhi789.lyricsforpoweramp).
 
 ### :flower_playing_cards: Screenshots
 ![App Screenshots](assets/Screenshots_L4PA.png)
