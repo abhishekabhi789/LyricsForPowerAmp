@@ -3,12 +3,11 @@ package io.github.abhishekabhi789.lyricsforpoweramp.ui.settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -72,18 +71,19 @@ fun AppSettings(
             .then(focusRemoverModifier)
             .nestedScroll(scrollBehavior.nestedScrollConnection)
     ) { contentPadding ->
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        LazyVerticalStaggeredGrid(
+            verticalItemSpacing = 8.dp,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            columns = StaggeredGridCells.Adaptive(350.dp),
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .padding(contentPadding)
                 .consumeWindowInsets(contentPadding)
                 .padding(horizontal = 8.dp)
         ) {
-            AppThemeSettings(viewModel = viewModel)
-            LyricsRequestSettings()
-            FilterSettings()
+            item { AppThemeSettings(viewModel = viewModel) }
+            item { LyricsRequestSettings() }
+            item { FilterSettings() }
         }
     }
 }
