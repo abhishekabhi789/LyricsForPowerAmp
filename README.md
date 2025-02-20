@@ -1,29 +1,30 @@
 <div align="center">
 
-![App Icon](assets/app_icon.png)
+[![App Icon](assets/app_icon.png)](#)
 <br>
-![App Name](assets/app_name.png)
+[![App Name](assets/app_name.png)](#)
+<br>
+A lyrics plugin for [Poweramp](https://powerampapp.com/) <br>
 <br>
 <a href="https://developer.android.com/tools/releases/platforms#5.0">
-<img alt="API 21+" src="https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=for-the-badge&color=FF0800" title="Android 6.0 Marshmallow"></a>
+<img alt="API 21+" src="https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=for-the-badge&color=FF0800&logo=android" title="Android 6.0 Marshmallow">
+</a>
 <a href="https://github.com/abhishekabhi789/LyricsForPowerAmp/releases">
-<img alt="Download count" src="https://img.shields.io/github/downloads/abhishekabhi789/LyricsForPowerAmp/total?style=for-the-badge&color=00C853" title="Total download count"></a>
+<img alt="GitHub release download count" src="https://img.shields.io/github/downloads/abhishekabhi789/LyricsForPowerAmp/total?style=for-the-badge&color=00C853&logo=github" title="GitHub release download count">
+</a>
+<a href="https://play.google.com/store/apps/details?id=io.github.abhishekabhi789.lyricsforpoweramp">
+<img alt="Playstore release download count" src="https://img.shields.io/endpoint?url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dio.github.abhishekabhi789.lyricsforpoweramp%26gl%3DUS%26hl%3Den%26l%3DDOWNLOADS%26m%3D%24totalinstalls&color=4285F4&logo=googleplay&style=for-the-badge" title="Playstore release download count">
+</a>
+<br>
+<a href="https://play.google.com/store/apps/details?id=io.github.abhishekabhi789.lyricsforpoweramp" class="btn" target="_blank">
+<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" width="240" alt="get it on Google Play"/>
+</a>
 
-A lyrics plugin for [Poweramp](https://powerampapp.com/) <br>
 </div>
 
-> [!NOTE]
-> ## Looking for a few testers for the Google Play release
-> If you're interested and willing to help, please follow these steps:
-> 1. [Join the Google Group for testers](https://groups.google.com/g/lyrics-for-poweramp-testers) (
-     mandatory)
-> 2. [Opt into the test on Google Play](https://play.google.com/apps/testing/io.github.abhishekabhi789.lyricsforpoweramp)
->
-> Once you've completed these steps, you can install the app from
-> the [Google Play Store](https://play.google.com/store/apps/details?id=io.github.abhishekabhi789.lyricsforpoweramp).
-
 ### :flower_playing_cards: Screenshots
-![App Screenshots](assets/Screenshots_L4PA.png)
+
+[![App Screenshots](assets/Screenshots_L4PA.png)](#)
 
 ### :shield: Permissions
 
@@ -109,4 +110,5 @@ Poweramp automatically sends a lyrics request when it doesn't have lyrics availa
 2. [LRCLib](https://lrclib.net/) - Lyrics Source
 
 ### :gift_heart: Support
-<a href='https://ko-fi.com/X8X1V9VTH' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi1.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com'/></a>
+
+<a href='https://ko-fi.com/X8X1V9VTH' target='_blank'><img style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi1.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com'/></a>
